@@ -27,12 +27,13 @@ def initDB():
                     "userid BIGINT," +
                     "channelid BIGINT" +
                     ");")
-        print("Created Message table in db")
+        print("Created 'Message' table in db")
     return (con, cur)
 
 
+
 def getRecentDateTime(con, cur):
-    """Returns the DateTime for the most recent message in Message.db
+    """Returns the DateTime for the most recent row in connected database.
 
     Args:
         con (Connection): Connection to database
@@ -40,13 +41,11 @@ def getRecentDateTime(con, cur):
     """
 
 
-def insertMsg(con, cur, newMsg):
-    """Inserts newMsg as a new row into connected table.
-
+def insertMsg(con, cur, newRows):
+    """Inserts an array of data as several new rows into connected table.
+    
     Args:
         con (Connection): Connection to database
         cur (Cursor): Cursor for connected database
-        newMsg (_type_): _description_
+        newRows (list[tuple]): List of tuples, each describing a new row to add to database
     """
-
-# con.commit() # THIS COMMITS INSERTS TO DB, LEAVE COMMENTED FOR NOW
