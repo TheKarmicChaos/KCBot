@@ -49,3 +49,10 @@ def insertMsg(con, cur, newRows):
         cur (Cursor): Cursor for connected database
         newRows (list[tuple]): List of tuples, each describing a new row to add to database
     """
+    
+    try:    # try inserting new rows, then commit
+        cur.executemany("INSERT INTO Message VALUES (?, ?, ?, ?, ?, ?, ?);", newRows)
+        con.commit()
+    except: # rollback if this fails
+        print("Failed to write to database")
+        con.rollback()
