@@ -22,7 +22,7 @@ x Create a github repo for this project.
 
 - Using each conversation, create a prompt/input/response with the response being based on each of my existing messages. The collection of these prompt/input/repsonses will be the dataset with which we train the LLM.
 
-- Install a Python package I can use to train an existing LLM.
+- Install a Python package I can use to train an existing LLM. The alpaca dataset is my template.
 
 - Hook up training data to LLM via Python script, train it for a few days and monitor progress. (Learning a LLM API will probably take a while, but I need to learn it with enough time remaining in order to have time to train).
 
