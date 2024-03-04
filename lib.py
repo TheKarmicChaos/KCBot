@@ -2,9 +2,7 @@ import sqlite3
 import os
 
 def initDB():
-    """_summary_
-    Connects to Message.db. Also handles creating/initializing any missing directories, databases, or tables.
-    Returns tuple (con, cur) containing the Connection & Cursor objects.
+    """Connects to Message.db. Also handles creating/init any missing dir, db, or tables.
     """
     
     # Check root dir for KCBot_db. If it does not exist, create it.
@@ -33,9 +31,22 @@ def initDB():
     return (con, cur)
 
 
+def getRecentDateTime(con, cur):
+    """Returns the DateTime for the most recent message in Message.db
+
+    Args:
+        con (Connection): Connection to database
+        cur (Cursor): Cursor for connected database
+    """
+
+
 def insertMsg(con, cur, newMsg):
-    """_summary_
-    Inserts newMsg as a new row into connected table.
+    """Inserts newMsg as a new row into connected table.
+
+    Args:
+        con (Connection): Connection to database
+        cur (Cursor): Cursor for connected database
+        newMsg (_type_): _description_
     """
 
 # con.commit() # THIS COMMITS INSERTS TO DB, LEAVE COMMENTED FOR NOW
