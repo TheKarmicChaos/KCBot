@@ -31,13 +31,20 @@ def initDB():
     return (con, cur)
 
 
-def getRecentDateTime(con, cur):
+def getMostRecent(con, cur):
     """Returns the most recent row in connected database (determined by "sent" column).
     
     Args:
         con (Connection): Connection to database
         cur (Cursor): Cursor for connected database
     """
+    
+    try:    # try sorting messages by date sent and return the most recent one
+        res = cur.execute("SELECT * FROM Message ORDER BY sent DESC;")
+        return res.fetchone()
+    except:
+        print("ERROR - Failed to retrieve most recent message")
+        # TODO: Error handling
 
 
 def insertMsg(con, cur, newRows):
