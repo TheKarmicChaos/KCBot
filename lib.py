@@ -31,10 +31,9 @@ def initDB():
     return (con, cur)
 
 
-
 def getRecentDateTime(con, cur):
-    """Returns the DateTime for the most recent row in connected database.
-
+    """Returns the most recent row in connected database (determined by "sent" column).
+    
     Args:
         con (Connection): Connection to database
         cur (Cursor): Cursor for connected database
@@ -54,5 +53,5 @@ def insertMsg(con, cur, newRows):
         cur.executemany("INSERT INTO Message VALUES (?, ?, ?, ?, ?, ?, ?);", newRows)
         con.commit()
     except: # rollback if this fails
-        print("Failed to write to database")
+        print("WARNING - Failed to write to database")
         con.rollback()
