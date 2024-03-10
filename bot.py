@@ -33,14 +33,22 @@ def initBot(client):
         print("Could not load config.json properly. Perhaps you forgot to replace the placeholders?")
 
 
-class MyClient(dc.Client):
-    """Run bot with ScrapeClient to enable scraping of messages.
-
-    Args:
-        dc (_type_): _description_
+class ChatClient(dc.Client):
+    """Discord bot client for sending and responding to chat messages.
+    When activated with initBot() it will respond to messages starting with "/kc"
+    in the the channels specified in config.json.
     """
+    config = getConfig()
+    guildID = config["guildID"]
+    channelIDs = config["channelIDs"]
+    
     async def on_ready(self):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
+        print(f'Guild: "{self.get_guild(self.guildID)}"')
+        print('------')
+        print(f'Chatbot enabled in the following channels:')
+        for channel in self.channelIDs:
+            print(self.get_channel(channel))
         print('------')
 
     async def on_message(self, message):
@@ -49,6 +57,32 @@ class MyClient(dc.Client):
             return
 
         if message.content.startswith('/kc'):
+            # Placeholder for when AI part of project is finished.
             await message.reply('Hello!', mention_author=True)
 
-initBot()
+
+class ScrapeClient(dc.Client):
+    """Discord bot client for scraping messages.
+    When activated with initBot() it will automatically scrape the channels specified in config.json.
+    """
+    config = getConfig()
+    guildID = config["guildID"]
+    channelIDs = config["channelIDs"]
+    
+    async def on_ready(self):
+        print(f'Logged in as {self.user} (ID: {self.user.id})')
+        print(f'Guild: "{self.get_guild(self.guildID)}"')
+        print('------')
+        print(f'Scraping the following channels:')
+        for channel in self.channelIDs:
+            print(self.get_channel(channel))
+        print('------')      
+
+
+
+# temp test code for running a bot
+intents = dc.Intents.default()
+intents.message_content = True
+
+client = ChatClient(intents=intents)
+initBot(client)
