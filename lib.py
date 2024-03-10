@@ -1,9 +1,9 @@
 import sqlite3
 import os
 
+
 def initDB():
-    """Connects to Message.db. Also handles creating/init any missing dir, db, or tables.
-    """
+    """Connects to Message.db. Also handles creating/init any missing dir, db, or tables."""
     
     # Check root dir for KCBot_db. If it does not exist, create it.
     if "KCBot_db" not in os.listdir(os.path.abspath(os.sep)):
@@ -27,6 +27,7 @@ def initDB():
                     "userid BIGINT," +
                     "channelid BIGINT" +
                     ");")
+                    # TODO: Extra columns for stuff like replies
         print("Created 'Message' table in db")
     return (con, cur)
 
