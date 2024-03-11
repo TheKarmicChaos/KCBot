@@ -19,16 +19,15 @@ def initDB():
     table = cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name = 'Message';")
     if table.fetchone() is None:  # Create the Messages table if it is empty
         cur.execute("CREATE TABLE Message(" +
-                    "username VARCHAR(100)," +
-                    "content VARCHAR(2000)," +
-                    "sent DATETIME," +
-                    "channelname VARCHAR(200)," +
                     "messageid BIGINT," +
-                    "userid BIGINT," +
                     "channelid BIGINT," +
-                    "replyid BIGINT"
+                    "channelname VARCHAR(200)," +
+                    "userid BIGINT," +
+                    "username VARCHAR(100)," +
+                    "sent DATETIME," +
+                    "content VARCHAR(2000)," +
+                    "replyid BIGINT" +
                     ");")
-                    # TODO: Extra columns for stuff like replies
         print("Created 'Message' table in db")
     return (con, cur)
 
