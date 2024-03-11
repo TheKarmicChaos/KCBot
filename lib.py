@@ -32,20 +32,26 @@ def initDB():
     return (con, cur)
 
 
-def getMostRecent(con, cur):
-    """Returns the most recent row in connected database (determined by "sent" column).
+def getMostRecent(con, cur, channelid):
+    """Returns the most recently sent messageid with a matching channelid in connected database.
+    (Recency is determined by the datetime in the "sent" column)
     
     Args:
         con (Connection): Connection to database
         cur (Cursor): Cursor for connected database
+        channelid (int): ID of the channel to get the most recent message from
     """
     
     try:    # try sorting messages by date sent and return the most recent one
-        res = cur.execute("SELECT * FROM Message ORDER BY sent DESC;")
+        res = cur.execute("SELECT messageid FROM Message " +
+                          "WHERE channelid = ? " +
+                          "ORDER BY sent DESC;",
+                          channelid)
         return res.fetchone()
     except:
-        print("ERROR - Failed to retrieve most recent message")
-        # TODO: Error handling
+        # If this fails, we may not have any messages for this channel in db, so return None to continue under this assumption.
+        print("ERROR - Failed to retrieve most recent message for this channel.")
+        return None
 
 
 def insertMsg(con, cur, newRows):
