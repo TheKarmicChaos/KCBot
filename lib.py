@@ -25,7 +25,8 @@ def initDB():
                     "channelname VARCHAR(200)," +
                     "messageid BIGINT," +
                     "userid BIGINT," +
-                    "channelid BIGINT" +
+                    "channelid BIGINT," +
+                    "replyid BIGINT"
                     ");")
                     # TODO: Extra columns for stuff like replies
         print("Created 'Message' table in db")
@@ -58,7 +59,7 @@ def insertMsg(con, cur, newRows):
     """
     
     try:    # try inserting new rows, then commit
-        cur.executemany("INSERT INTO Message VALUES (?, ?, ?, ?, ?, ?, ?);", newRows)
+        cur.executemany("INSERT INTO Message VALUES (?, ?, ?, ?, ?, ?, ?, ?);", newRows)
         con.commit()
     except: # rollback if this fails
         print("WARNING - Failed to write to database")
