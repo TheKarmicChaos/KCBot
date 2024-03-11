@@ -2,6 +2,8 @@
 
 import discord as dc
 import json
+from lib import *
+
 
 
 def getConfig():
@@ -73,16 +75,38 @@ class ScrapeClient(dc.Client):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
         print(f'Guild: "{self.get_guild(self.guildID)}"')
         print('------')
-        print(f'Scraping the following channels:')
+        
+        print('Connecting to database...')
+        (con, cur) = initDB()
+        print('Channels to scrape:')
         for channel in self.channelIDs:
-            print(self.get_channel(channel))
-        print('------')      
-
-
-
-# temp test code for running a bot
-intents = dc.Intents.default()
-intents.message_content = True
-
-client = ChatClient(intents=intents)
-initBot(client)
+            print(f'\t{self.get_channel(channel)}')
+        print('------')
+        
+        for channel in self.channelIDs:
+            chan = self.get_channel(channel)
+            print(f'({chan}) Fetching most recent msg in db...')
+            # Fetch most recent message in db for this channel
+            mostRecentMsg = getMostRecent(con, cur, channel)
+            msgBatch = []
+            print(f'({chan}) Scraping message history (this may take a while)...')
+            async for message in chan.history(after=mostRecentMsg, oldest_first=True):
+                # check if this message references another message.
+                reference = None
+                try:
+                    reference = message.reference.message_id
+                except:
+                    reference = None
+                msg = (message.id,
+                        message.channel.id,
+                        message.channel.name,
+                        message.author.id,
+                        message.author.name,
+                        str(message.created_at),
+                        message.content,
+                        reference)
+                msgBatch.append(msg)
+                # print(msg)
+            print(f'({chan}) Saving messages to db...')
+            insertMsg(con, cur, msgBatch)  
+        print('------')
