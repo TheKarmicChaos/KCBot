@@ -4,8 +4,6 @@ import discord as dc
 import json
 from lib import *
 
-
-
 def getConfig():
     """Reads config from file and returns a config dict"""
     config = {}
@@ -58,9 +56,12 @@ class ChatClient(dc.Client):
         if message.author.id == self.user.id:
             return
 
-        if message.content.startswith('/kc'):
+        if message.content.startswith('/kc '):
+            prompt = message.content[4:]
+            # TODO: Run the prompt through AI and send the result as a discord message.
+            
             # Placeholder for when AI part of project is finished.
-            await message.reply('Hello!', mention_author=True)
+            await message.reply(f'Hello! Your message was:\n{prompt}', mention_author=True)
 
 
 class ScrapeClient(dc.Client):
