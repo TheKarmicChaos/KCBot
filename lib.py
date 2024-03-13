@@ -3,7 +3,12 @@ import os
 
 
 def initDB():
-    """Connects to Message.db. Also handles creating/init any missing dir, db, or tables."""
+    """
+    Connects to Message.db. Also handles creating/init any missing dir, db, or tables.
+    
+    Returns:
+        tuple[Connection, Cursor]: The Connection and Cursor objects for the connected database.
+    """
     
     # Check root dir for KCBot_db. If it does not exist, create it.
     if "KCBot_db" not in os.listdir(os.path.abspath(os.sep)):
@@ -40,6 +45,8 @@ def getMostRecent(con, cur, channelid):
         con (Connection): Connection to database
         cur (Cursor): Cursor for connected database
         channelid (int): ID of the channel to get the most recent message from
+    Returns:
+        (int | None): messageid of most recently sent message found in db. None if no messages were found in that channel.
     """
 
     try:    # try sorting messages by date sent and return the most recent one
