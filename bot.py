@@ -58,10 +58,11 @@ class ChatClient(dc.Client):
 
         if message.content.startswith('/kc '):
             prompt = message.content[4:]
+            (con, cur) = initDB()
             # TODO: Run the prompt through AI and send the result as a discord message.
-            
+            result = cur.execute(prompt)
             # Placeholder for when AI part of project is finished.
-            await message.reply(f'Hello! Your message was:\n{prompt}', mention_author=True)
+            await message.reply(result.fetchmany(10), mention_author=True)
 
 
 class ScrapeClient(dc.Client):
