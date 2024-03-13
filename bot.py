@@ -89,10 +89,12 @@ class ScrapeClient(dc.Client):
             print(f'({chan}) Fetching most recent msg in db...')
             # Fetch most recent message in db for this channel
             mostRecentMsg = getMostRecent(con, cur, channel)
+            if mostRecentMsg != None:
+                mostRecentMsg = await chan.fetch_message(mostRecentMsg)
             msgBatch = []
             count = 0
             print(f'({chan}) Scraping message history (this may take a while)...')
-            async for message in chan.history(after=mostRecentMsg, oldest_first=True):
+            async for message in chan.history(limit=10000, after=mostRecentMsg, oldest_first=True):
                 # check if this message references another message.
                 reference = None
                 try:

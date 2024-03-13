@@ -41,13 +41,14 @@ def getMostRecent(con, cur, channelid):
         cur (Cursor): Cursor for connected database
         channelid (int): ID of the channel to get the most recent message from
     """
-    
+
     try:    # try sorting messages by date sent and return the most recent one
-        res = cur.execute("SELECT messageid FROM Message " +
-                          "WHERE channelid = ? " +
-                          "ORDER BY sent DESC;",
-                          channelid)
-        return res.fetchone()
+        result = cur.execute("SELECT messageid " +
+                            "FROM Message " +
+                            "WHERE channelid = ? " +
+                            "ORDER BY sent DESC;",
+                            (channelid,))
+        return result.fetchone()[0]
     except:
         # If this fails, we may not have any messages for this channel in db, so return None to continue under this assumption.
         print("ERROR - Failed to retrieve most recent message for this channel.")
