@@ -8,24 +8,22 @@ TODO LIST:
 
 x Create a github repo for this project.
 
-- Write a Python script to extract discord messages from the API and store them in a csv file. Discord Dumper should be a good framework to build off so I don't need to learn the API.
+x Write code to make and update a local SQLite db.
 
-- Include a failsafe such that if a message ID already exists in the dataset, cease scraping. (This will give me the ability to run the script later to add more to the dataset.
+x Create a discord bot to use for scraping messages (and later to respond to messages using the AI).
 
-- Run said script overnight to gather the initial dataset.
+x Write code to scrape discord messages and store them in a local db. Should only extract messages not already in db.
 
-- Create a local MySQL database (or install SQLite) and load the csv file into the database.
+x Run scraper to gather my raw dataset.
 
-- Clean dataset (replace mentions & real names, etc)
+- Write code to clean dataset (replace mentions & real names, remove links/images, etc)
 
-- Parse dataset from individual messages into conversations (possibly include LDA at this part).
+- Write code to parse dataset from individual messages into conversations (possibly include LDA at this part).
 
-- Using each conversation, create a prompt/input/response with the response being based on each of my existing messages. The collection of these prompt/input/repsonses will be the dataset with which we train the LLM.
+- Write func to create a new dataset, using each conversation to create a prompt/input/response with the response being based on each of my existing messages. The collection of these prompt/input/repsonses will be the dataset with which we train the LLM.
 
 - Install a Python package I can use to train an existing LLM. The alpaca dataset is my template.
 
 - Hook up training data to LLM via Python script, train it for a few days and monitor progress. (Learning a LLM API will probably take a while, but I need to learn it with enough time remaining in order to have time to train).
 
-- This should take a few weeks to finish training if all goes well.
-
-- (Optional) Learn how to make a discord bot while training is happening, then create a bot and stick the AI into it so that I can add it to the discord server I am using to train it and show it to friends.
+- This might take a few weeks to finish training if all goes well.
