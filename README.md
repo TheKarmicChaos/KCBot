@@ -7,7 +7,7 @@ All parties in the server from which the message history data have given consent
 * Install all required Python modules (listed below)
 * Create a Discord bot with message content intent enabled.
 * Download KCBot and put the directory anywhere you want on your system. It will create a separate KCBot_db directory at root for training data.
-* In the KCBot directory, open the file named "config.json" and replace the "xxxxx" placeholders with your bot's authentication token, the ID of your discord server, and the IDs of each channel in the server that the bot can scrape.
+* In the KCBot directory, open the file named "config.json" and replace the "xxxxx" placeholders with your bot's authentication token, the ID of your discord server, and the IDs of each channel in the server that the bot can scrape/chat in.
 
 ## __Required modules:__
 * os
