@@ -1,5 +1,4 @@
 from lib import *
-from bot import *
 
 # temp test code for running chat bot
 def runChatBot():
