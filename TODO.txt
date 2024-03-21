@@ -16,14 +16,18 @@ x Write code to scrape discord messages and store them in a local db. Should onl
 
 x Run scraper to gather my raw dataset.
 
+Mar 27:
 - Write code to clean dataset (replace mentions & real names, remove links/images, etc)
 
+Apr 10:
 - Write code to parse dataset from individual messages into conversations (possibly include LDA at this part).
 
+Apr 17:
 - Write func to create a new dataset, using each conversation to create a prompt/input/response with the response being based on each of my existing messages. The collection of these prompt/input/repsonses will be the dataset with which we train the LLM.
 
 - Install a Python package I can use to train an existing LLM. The alpaca dataset is my template.
 
+May 1:
 - Hook up training data to LLM via Python script, train it for a few days and monitor progress. (Learning a LLM API will probably take a while, but I need to learn it with enough time remaining in order to have time to train).
 
 - This might take a few weeks to finish training if all goes well.
