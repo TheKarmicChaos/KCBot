@@ -127,19 +127,20 @@ def initDB():
         tuple[Connection, Cursor]: The Connection and Cursor objects for the connected database.
     """
     
-    # Check root dir for KCBot_db. If it does not exist, create it.
-    if "KCBot_db" not in os.listdir(os.path.abspath(os.sep)):
-        os.mkdir(path=os.path.abspath(os.sep) + "KCBot_db")
-        print("Directory KCBot_db was not found at root and was created")
+    # Check for db directory. If it does not exist, create it.
+    if "db" not in os.listdir():
+        os.mkdir(path=os.getcwd() + os.sep + "db")
+        print("Directory 'db' was not found and was created locally")
 
-    os.chdir(path=os.path.abspath(os.sep) + "KCBot_db") # Change cwd to KCBot_db
+    os.chdir(path=os.getcwd() + os.sep + "db")      # Change cwd to db
     con = sqlite3.connect(database="Message.db")    # Estabish a connection w/ database
     cur = con.cursor()                              # Create a Cursor
+    os.chdir(path=os.pardir)                        # Return cwd to parent dir for future operations
     print("Connected to Message.db")
     
     # Selects the "Message" table from db
     table = cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name = 'Message';")
-    if table.fetchone() is None:  # Create the Messages table if it is empty
+    if table.fetchone() is None:  # Create the Message table if it is empty
         cur.execute("CREATE TABLE Message(" +
                     "messageid BIGINT," +
                     "channelid BIGINT," +
