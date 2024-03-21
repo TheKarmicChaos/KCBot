@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import re
 import json
 import discord as dc
 # Kaycee bot requires the 'message_content' intent to be enabled.
@@ -18,6 +19,21 @@ def getConfig():
         channelIDs.append(int(channel))
     config['channelIDs'] = channelIDs
     return config
+
+
+def getNames():
+    """Reads preferred names from names.json file.
+    id/name pairs in names.json can be for channels, roles, or users.
+    
+    Returns:
+        dict[str, str]: Dict of id/name pairs
+    """
+    print(os.getcwd())
+    idMap = {}
+    with open('names.json', 'r') as f:
+        idMap = json.loads(f.read())
+        f.close()
+    return idMap
 
 
 def initBot(client):
@@ -118,6 +134,12 @@ class ScrapeClient(dc.Client):
             print(f'({chan}) Done!')
         print('------')
         
+        print(f'Cleaning up messages...')
+        cleanAllData(con, cur)
+        print('------')
+        
+
+# DATABASE FUNCTIONS
 
 def initDB():
     """
@@ -151,7 +173,7 @@ def initDB():
                     "content VARCHAR(2000)," +
                     "replyid BIGINT" +
                     ");")
-        print("Created 'Message' table in db")
+        print("Created 'Message' table in db")  
     return (con, cur)
 
 
@@ -195,3 +217,84 @@ def insertMsg(con, cur, newRows):
     except: # rollback if this fails
         print("WARNING - Failed to write to database")
         con.rollback()
+
+
+
+
+
+def cleanAllData(con, cur):
+    """Handles cleaning & updating all message contents in db
+
+    Args:
+        con (Connection): Connection to database
+        cur (Cursor): Cursor for connected database 
+    """
+    # Create a second cursor temporarily so we can update as we iterate over the first cursor.
+    # This saves us from having to load the entire database into memory at once.
+    updCur = con.cursor()
+    
+    # Load both json files
+    names = getNames()
+    config = getConfig()
+    
+    cleanCount = 0
+    delCount = 0
+    cur.execute("SELECT * FROM Message ORDER BY sent ASC;")
+    for row in cur:     # for each message in db...
+        #print(row)
+        newContent = cleanMsg(row, names, config) # clean the contents
+        if newContent == "":        # If the message has no content, delete it from the database.
+            updCur.execute("DELETE FROM Message WHERE messageID = ?;", (row[0],))
+            # TODO: for database integrity, maybe also delete any messages replying to this deleted message. Repeat until no messages are modified.
+            delCount += 1
+        elif newContent != row[6]:  # Otherwise, update it with the cleaned content if it has changed
+            updCur.execute("UPDATE Message SET content = ? WHERE messageID = ?;", (newContent, row[0]))
+            cleanCount += 1
+    print(f"Cleaned and updated {cleanCount} messages in Message.db")
+    print(f"Deleted {delCount} empty messages in Message.db")
+    con.commit()
+    updCur.close()  # close temporary cursor
+
+
+def cleanMsg(msg, names, config):
+    """Handles cleaning a message's contents by doing the following:
+    - Deletes messages sent by KCBot or messages starting with "/kc"
+    - Removes embedded links & images
+    - Replaces user/channel mentions with names specified in names.json.
+    - Removes all user/channel mentions not included in names.json.
+    - Removes embedded custom discord emoji
+
+    Args:
+        row (tuple): Row of db containing message to clean
+        users (dict[str, str]): Dict of id/name pairs from names.json
+
+    Returns:
+        str: Cleaned message content
+    """
+    
+    msgContent = msg[6]
+    sentBy = msg[3]
+    
+    # Immediately delete all content if the message was sent by KCBot or starts with "/kc"
+    if re.match(r"/kc", msgContent) != None or sentBy == config["botID"]:
+        return ""
+    # Removing embedded links & images
+    msgContent = re.sub(r"http\S+|www\S+|https\S+", "", msgContent, flags=re.MULTILINE)
+    # Removing discord emoji. Unicode emojis are left unchanged.
+    msgContent = re.sub(r"\<.+?:\d+\>", "", msgContent)
+    
+    # Replacing @ mentions & channel mentions with names specified in names.json
+    mentions = re.findall(r"\<[#@].*?(\d+?)\>", msgContent)
+    for id in mentions:
+        if id in names: # If this user or channel mention has a specified name, replace it with the name
+            msgContent = re.sub(r"\<[#@].*?" + id + r"\>", names[id], msgContent)
+        else:           # Otherwise, entirely delete the mention
+            msgContent = re.sub(r"\<[#@].*?" + id + r"\>", "", msgContent)
+            
+    # Cleaning up extra whitespace (keeping newlines)
+    msgContent = re.sub(r"(?:(?!\n)\s)+", " ", msgContent)
+    # Strip trailing & leading whitespace (including newlines)
+    msgContent = msgContent.strip()
+
+    
+    return msgContent
