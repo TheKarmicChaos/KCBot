@@ -28,7 +28,6 @@ def getNames():
     Returns:
         dict[str, str]: Dict of id/name pairs
     """
-    print(os.getcwd())
     idMap = {}
     with open('names.json', 'r') as f:
         idMap = json.loads(f.read())
@@ -295,6 +294,5 @@ def cleanMsg(msg, names, config):
     msgContent = re.sub(r"(?:(?!\n)\s)+", " ", msgContent)
     # Strip trailing & leading whitespace (including newlines)
     msgContent = msgContent.strip()
-
     
     return msgContent
