@@ -5,7 +5,7 @@ import json
 import discord as dc
 # Kaycee bot requires the 'message_content' intent to be enabled.
 
-def getConfig():
+def getConfig() -> dict:
     """Reads config from file and returns a config dict"""
     config = {}
     with open('config.json', 'r') as f:
@@ -21,12 +21,11 @@ def getConfig():
     return config
 
 
-def getNames():
+def getNames() -> dict[str, str]:
     """Reads preferred names from names.json file.
     id/name pairs in names.json can be for channels, roles, or users.
     
-    Returns:
-        dict[str, str]: Dict of id/name pairs
+    Returns dict of id/name pairs.
     """
     idMap = {}
     with open('names.json', 'r') as f:
@@ -35,11 +34,11 @@ def getNames():
     return idMap
 
 
-def initBot(client):
+def initBot(client : dc.Client):
     """Sets up a bot client using config.json and connects it to your server so you can use it.
     
     Args:
-        client (Client): Discord client connection object with the corresponding code & intents for the desired behavior of the bot.
+        client : Discord client connection object with the corresponding code & intents for the desired behavior of the bot.
     """
     
     config = getConfig()
@@ -67,7 +66,7 @@ class ChatClient(dc.Client):
             print(self.get_channel(channel))
         print('------')
 
-    async def on_message(self, message):
+    async def on_message(self, message: dc.Message):
         # we do not want the bot to reply to itself
         if message.author.id == self.user.id:
             return
@@ -140,12 +139,11 @@ class ScrapeClient(dc.Client):
 
 # DATABASE FUNCTIONS
 
-def initDB():
+def initDB() -> tuple[sqlite3.Connection, sqlite3.Cursor]:
     """
     Connects to Message.db. Also handles creating/init any missing dir, db, or tables.
     
-    Returns:
-        tuple[Connection, Cursor]: The Connection and Cursor objects for the connected database.
+    Returns the Connection and Cursor objects for the connected database.
     """
     
     # Check for db directory. If it does not exist, create it.
@@ -176,16 +174,14 @@ def initDB():
     return (con, cur)
 
 
-def getMostRecent(con, cur, channelid):
-    """Returns the most recently sent messageid with a matching channelid in connected database.
-    (Recency is determined by the datetime in the "sent" column)
+def getMostRecent(con : sqlite3.Connection, cur : sqlite3.Cursor, channelid : int) -> int | None:
+    """Returns the most recently sent messageid with a matching channelid in connected database,
+    or None if no messages were found in that channel. (Recency is determined by the datetime in the "sent" column)
     
     Args:
-        con (Connection): Connection to database
-        cur (Cursor): Cursor for connected database
-        channelid (int): ID of the channel to get the most recent message from
-    Returns:
-        (int | None): messageid of most recently sent message found in db. None if no messages were found in that channel.
+        con : Connection to database
+        cur : Cursor for connected database
+        channelid : ID of the channel to get the most recent message from
     """
 
     try:    # try sorting messages by date sent and return the most recent one
@@ -201,13 +197,13 @@ def getMostRecent(con, cur, channelid):
         return None
 
 
-def insertMsg(con, cur, newRows):
+def insertMsg(con : sqlite3.Connection, cur : sqlite3.Cursor, newRows : list[tuple]):
     """Inserts an array of data as several new rows into connected table.
     
     Args:
-        con (Connection): Connection to database
-        cur (Cursor): Cursor for connected database
-        newRows (list[tuple]): List of tuples, each describing a new row to add to database
+        con : Connection to database
+        cur : Cursor for connected database
+        newRows : List of tuples, each describing a new row to add to database
     """
     
     try:    # try inserting new rows, then commit
@@ -219,14 +215,12 @@ def insertMsg(con, cur, newRows):
 
 
 
-
-
-def cleanAllData(con, cur):
+def cleanAllData(con : sqlite3.Connection, cur : sqlite3.Cursor):
     """Handles cleaning & updating all message contents in db
 
     Args:
-        con (Connection): Connection to database
-        cur (Cursor): Cursor for connected database 
+        con : Connection to database
+        cur : Cursor for connected database
     """
     # Create a second cursor temporarily so we can update as we iterate over the first cursor.
     # This saves us from having to load the entire database into memory at once.
@@ -255,20 +249,20 @@ def cleanAllData(con, cur):
     updCur.close()  # close temporary cursor
 
 
-def cleanMsg(msg, names, config):
+def cleanMsg(msg : list, names : dict[str, str], config : dict) -> str:
     """Handles cleaning a message's contents by doing the following:
     - Deletes messages sent by KCBot or messages starting with "/kc"
     - Removes embedded links & images
     - Replaces user/channel mentions with names specified in names.json.
     - Removes all user/channel mentions not included in names.json.
     - Removes embedded custom discord emoji
+    
+    Returns cleaned message content as a string
 
     Args:
-        row (tuple): Row of db containing message to clean
-        users (dict[str, str]): Dict of id/name pairs from names.json
-
-    Returns:
-        str: Cleaned message content
+        msg : Row of db containing the message to clean
+        names : dict of id/name pairs from names.json
+        config : config dict from config.json
     """
     
     msgContent = msg[6]
