@@ -235,7 +235,7 @@ def cleanAllData(con : sqlite3.Connection, cur : sqlite3.Cursor):
     cur.execute("SELECT * FROM Message ORDER BY sent ASC;")
     for row in cur:     # for each message in db...
         #print(row)
-        newContent = cleanMsg(row, names, config) # clean the contents
+        newContent = cleanMsg(row[6], row[3], names, config) # clean the contents
         if newContent == "":        # If the message has no content, delete it from the database.
             updCur.execute("DELETE FROM Message WHERE messageID = ?;", (row[0],))
             # TODO: for database integrity, maybe also delete any messages replying to this deleted message. Repeat until no messages are modified.
@@ -249,7 +249,7 @@ def cleanAllData(con : sqlite3.Connection, cur : sqlite3.Cursor):
     updCur.close()  # close temporary cursor
 
 
-def cleanMsg(msg : list, names : dict[str, str], config : dict) -> str:
+def cleanMsg(msgContent : str, sentBy : str, names : dict[str, str], config : dict) -> str:
     """Handles cleaning a message's contents by doing the following:
     - Deletes messages sent by KCBot or messages starting with "/kc"
     - Removes embedded links & images
@@ -260,13 +260,11 @@ def cleanMsg(msg : list, names : dict[str, str], config : dict) -> str:
     Returns cleaned message content as a string
 
     Args:
-        msg : Row of db containing the message to clean
+        msgContent : Content of message to clean
+        sentBy : string of ID of user who sent this message
         names : dict of id/name pairs from names.json
         config : config dict from config.json
     """
-    
-    msgContent = msg[6]
-    sentBy = msg[3]
     
     # Immediately delete all content if the message was sent by KCBot or starts with "/kc"
     if re.match(r"/kc", msgContent) != None or sentBy == config["botID"]:
