@@ -1,6 +1,7 @@
 {
     "botToken": "xxxxxxxxx",
     "botID": "xxxx",
+    "userToImpersonateID": "xxxx",
     "guildID": "xxxx",
     "channelIDs": [
         "xxxx",
