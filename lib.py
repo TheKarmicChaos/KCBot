@@ -14,6 +14,7 @@ def getConfig() -> dict:
     # convert IDs to ints
     config['guildID'] = int(config['guildID'])
     config['botID'] = int(config['botID'])
+    config['userToImpersonateID'] = int(config['userToImpersonateID'])
     channelIDs = []
     for channel in config['channelIDs']:
         channelIDs.append(int(channel))
