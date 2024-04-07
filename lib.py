@@ -125,7 +125,8 @@ class ScrapeClient(dc.Client):
                         message.author.name,
                         str(message.created_at),
                         message.content,
-                        reference)
+                        reference,
+                        -1) # conversid of -1 means we have not yet assigned this message to a conversation 
                 msgBatch.append(msg)
                 count += 1
             print(f'({chan}) Saving {count} messages to db...')
@@ -136,13 +137,12 @@ class ScrapeClient(dc.Client):
         print(f'Cleaning up messages...')
         cleanAllData(con, cur)
         print('------')
-        
+
 
 # DATABASE FUNCTIONS
 
 def initDB() -> tuple[sqlite3.Connection, sqlite3.Cursor]:
-    """
-    Connects to Message.db. Also handles creating/init any missing dir, db, or tables.
+    """Connects to Message.db. Also handles creating/init any missing dir, db, or tables.
     
     Returns the Connection and Cursor objects for the connected database.
     """
@@ -169,9 +169,20 @@ def initDB() -> tuple[sqlite3.Connection, sqlite3.Cursor]:
                     "username VARCHAR(100)," +
                     "sent DATETIME," +
                     "content VARCHAR(2000)," +
-                    "replyid BIGINT" +
+                    "replyid BIGINT," +
+                    "conversid BIGINT" +
                     ");")
-        print("Created 'Message' table in db")  
+        print("Created 'Message' table in db")
+    
+    # Selects the "Conversation" table from db
+    table = cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name = 'Conversation';")
+    if table.fetchone() is None:  # Create the Conversation table if it is empty
+        cur.execute("CREATE TABLE Conversation(" +
+                    "conversid BIGINT," +
+                    "channelid BIGINT," +
+                    "messageids VARCHAR(2000)" +
+                    ");")
+        print("Created 'Conversation' table in db")
     return (con, cur)
 
 
@@ -208,7 +219,7 @@ def insertMsg(con : sqlite3.Connection, cur : sqlite3.Cursor, newRows : list[tup
     """
     
     try:    # try inserting new rows, then commit
-        cur.executemany("INSERT INTO Message VALUES (?, ?, ?, ?, ?, ?, ?, ?);", newRows)
+        cur.executemany("INSERT INTO Message VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", newRows)
         con.commit()
     except: # rollback if this fails
         print("WARNING - Failed to write to database")
