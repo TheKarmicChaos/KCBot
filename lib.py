@@ -180,9 +180,9 @@ def getMostRecent(con : sqlite3.Connection, cur : sqlite3.Cursor, channelid : in
     or None if no messages were found in that channel. (Recency is determined by the datetime in the "sent" column)
     
     Args:
-        con : Connection to database
-        cur : Cursor for connected database
-        channelid : ID of the channel to get the most recent message from
+        `con` : Connection to database
+        `cur` : Cursor for connected database
+        `channelid` : ID of the channel to get the most recent message from
     """
 
     try:    # try sorting messages by date sent and return the most recent one
@@ -202,9 +202,9 @@ def insertMsg(con : sqlite3.Connection, cur : sqlite3.Cursor, newRows : list[tup
     """Inserts an array of data as several new rows into connected table.
     
     Args:
-        con : Connection to database
-        cur : Cursor for connected database
-        newRows : List of tuples, each describing a new row to add to database
+        `con` : Connection to database
+        `cur` : Cursor for connected database
+        `newRows` : List of tuples, each describing a new row to add to database
     """
     
     try:    # try inserting new rows, then commit
@@ -220,8 +220,8 @@ def cleanAllData(con : sqlite3.Connection, cur : sqlite3.Cursor):
     """Handles cleaning & updating all message contents in db
 
     Args:
-        con : Connection to database
-        cur : Cursor for connected database
+        `con` : Connection to database
+        `cur` : Cursor for connected database
     """
     # Create a second cursor temporarily so we can update as we iterate over the first cursor.
     # This saves us from having to load the entire database into memory at once.
@@ -251,20 +251,16 @@ def cleanAllData(con : sqlite3.Connection, cur : sqlite3.Cursor):
 
 
 def cleanMsg(msgContent : str, sentBy : str, names : dict[str, str], config : dict) -> str:
-    """Handles cleaning a message's contents by doing the following:
-    - Deletes messages sent by KCBot or messages starting with "/kc"
-    - Removes embedded links & images
-    - Replaces user/channel mentions with names specified in names.json.
-    - Removes all user/channel mentions not included in names.json.
-    - Removes embedded custom discord emoji
+    """Handles cleaning a message's contents by removing embedded links/emojis, replacing IDs with names, etc.
     
     Returns cleaned message content as a string
 
     Args:
-        msgContent : Content of message to clean
-        sentBy : string of ID of user who sent this message
-        names : dict of id/name pairs from names.json
-        config : config dict from config.json
+        `msgContent` : Content of message to clean
+        `sentBy` : string of ID of user who sent this message
+        `names` : dict of id/name pairs from names.json
+        `config` : config dict from config.json
+        `isTrainingData` = `False` : If set to True, messages starting with "/kc" and messages sent by the bot will return an empty string
     """
     
     # Immediately delete all content if the message was sent by KCBot or starts with "/kc"
