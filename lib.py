@@ -236,7 +236,7 @@ def cleanAllData(con : sqlite3.Connection, cur : sqlite3.Cursor):
     cur.execute("SELECT * FROM Message ORDER BY sent ASC;")
     for row in cur:     # for each message in db...
         #print(row)
-        newContent = cleanMsg(row[6], row[3], names, config) # clean the contents
+        newContent = cleanMsg(row[6], row[3], names, config, isTrainingData = True) # clean the contents
         if newContent == "":        # If the message has no content, delete it from the database.
             updCur.execute("DELETE FROM Message WHERE messageID = ?;", (row[0],))
             # TODO: for database integrity, maybe also delete any messages replying to this deleted message. Repeat until no messages are modified.
@@ -250,7 +250,7 @@ def cleanAllData(con : sqlite3.Connection, cur : sqlite3.Cursor):
     updCur.close()  # close temporary cursor
 
 
-def cleanMsg(msgContent : str, sentBy : str, names : dict[str, str], config : dict) -> str:
+def cleanMsg(msgContent : str, sentBy : str, names : dict[str, str], config : dict, isTrainingData = False) -> str:
     """Handles cleaning a message's contents by removing embedded links/emojis, replacing IDs with names, etc.
     
     Returns cleaned message content as a string
@@ -263,9 +263,16 @@ def cleanMsg(msgContent : str, sentBy : str, names : dict[str, str], config : di
         `isTrainingData` = `False` : If set to True, messages starting with "/kc" and messages sent by the bot will return an empty string
     """
     
-    # Immediately delete all content if the message was sent by KCBot or starts with "/kc"
-    if re.match(r"/kc", msgContent) != None or sentBy == config["botID"]:
+    # If this is training data, immediately delete all content if the message was sent by KCBot or starts with "/kc"
+    if isTrainingData and (re.match(r"/kc", msgContent) != None or sentBy == config["botID"]):
         return ""
+    # If this is not training data, delete "/kc" from the start of messages and change mentions of the botID to the userID they are attempting to mimic.
+    # This WILL result in the bot believing it is that user. Messages sent by the real user are treated by the bot as if it sent those messages.
+    elif not isTrainingData:
+        msgContent = re.sub(str(config["botID"]), str(config["userToImpersonateID"]), msgContent)
+        if re.match(r"/kc", msgContent) != None:
+            msgContent = msgContent[4:]
+    
     # Removing embedded links & images
     msgContent = re.sub(r"http\S+|www\S+|https\S+", "", msgContent, flags=re.MULTILINE)
     # Removing discord emoji. Unicode emojis are left unchanged.
