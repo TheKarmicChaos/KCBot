@@ -292,3 +292,27 @@ def cleanMsg(msgContent : str, sentBy : str, names : dict[str, str], config : di
     msgContent = msgContent.strip()
     
     return msgContent
+
+def formatMsg(msgContent : str, sentBy : str, names : dict[str, str], config : dict, isTrainingData = False) -> str:
+    """Formats a message into a simple string in the form of:
+        "Name: Message Content"
+    Example:
+        "Tom: Where are my pants?"
+    
+    Returns the formatted message string
+
+    Args:
+        `msgContent` : Content of message to format
+        `sentBy` : string of ID of user who sent this message
+        `names` : dict of id/name pairs from names.json
+        `config` : config dict from config.json
+        `isTrainingData` = `False` : If False, messages sent by Kaycee use the name of userToImpersonateID.
+         If True, messages sent by Kaycee use the name "Kaycee (Bot)"
+    """
+    if sentBy == config["botID"]:
+        if isTrainingData:
+            return f"Kaycee (Bot): {msgContent}"
+        else:
+            return f"{names[config["userToImpersonateID"]]}: {msgContent}"
+    else:
+        return f"{names[sentBy]}: {msgContent}"
