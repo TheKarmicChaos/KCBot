@@ -215,7 +215,6 @@ def insertMsg(con : sqlite3.Connection, cur : sqlite3.Cursor, newRows : list[tup
         con.rollback()
 
 
-
 def cleanAllData(con : sqlite3.Connection, cur : sqlite3.Cursor):
     """Handles cleaning & updating all message contents in db
 
@@ -270,8 +269,8 @@ def cleanMsg(msgContent : str, sentBy : str, names : dict[str, str], config : di
     # This WILL result in the bot believing it is that user. Messages sent by the real user are treated by the bot as if it sent those messages.
     elif not isTrainingData:
         msgContent = re.sub(str(config["botID"]), str(config["userToImpersonateID"]), msgContent)
-        if re.match(r"/kc", msgContent) != None:
-            msgContent = msgContent[4:]
+        if re.match(r"/kc ", msgContent) != None:
+            msgContent = msgContent[4:].strip()
     
     # Removing embedded links & images
     msgContent = re.sub(r"http\S+|www\S+|https\S+", "", msgContent, flags=re.MULTILINE)
@@ -293,6 +292,7 @@ def cleanMsg(msgContent : str, sentBy : str, names : dict[str, str], config : di
     
     return msgContent
 
+
 def formatMsg(msgContent : str, sentBy : str, names : dict[str, str], config : dict, isTrainingData = False) -> str:
     """Formats a message into a simple string in the form of:
         "Name: Message Content"
@@ -313,6 +313,7 @@ def formatMsg(msgContent : str, sentBy : str, names : dict[str, str], config : d
         if isTrainingData:
             return f"Kaycee (Bot): {msgContent}"
         else:
-            return f"{names[config["userToImpersonateID"]]}: {msgContent}"
+            name = names[config["userToImpersonateID"]]
+            return f"{name}: {msgContent}"
     else:
         return f"{names[sentBy]}: {msgContent}"
