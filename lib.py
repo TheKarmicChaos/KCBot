@@ -101,6 +101,7 @@ class ScrapeClient(dc.Client):
     When activated with initBot() it will automatically scrape the channels specified in config.json.
     """
     config = getConfig()
+    names = getNames()
     guildID = config["guildID"]
     channelIDs = config["channelIDs"]
     
@@ -151,6 +152,10 @@ class ScrapeClient(dc.Client):
         
         print(f'Cleaning up messages...')
         cleanAllData(con, cur)
+        print('------')
+        
+        print(f'Generating conversations...')
+        generateConversations(con, cur, self.names, self.config)
         print('------')
 
 
