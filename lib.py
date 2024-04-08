@@ -252,15 +252,16 @@ def cleanAllData(con : sqlite3.Connection, cur : sqlite3.Cursor):
     for row in cur:     # for each message in db...
         #print(row)
         newContent = cleanMsg(row[6], row[3], names, config, isTrainingData = True) # clean the contents
-        if newContent == "":        # If the message has no content, delete it from the database.
-            updCur.execute("DELETE FROM Message WHERE messageID = ?;", (row[0],))
+        if newContent == "":        # If the message has no content, delete it from the database. (current version keeps empty messages for testing)
+            updCur.execute("UPDATE Message SET content = ? WHERE messageID = ?;", (newContent, row[0]))
+            #updCur.execute("DELETE FROM Message WHERE messageID = ?;", (row[0],))
             # TODO: for database integrity, maybe also delete any messages replying to this deleted message. Repeat until no messages are modified.
             delCount += 1
         elif newContent != row[6]:  # Otherwise, update it with the cleaned content if it has changed
             updCur.execute("UPDATE Message SET content = ? WHERE messageID = ?;", (newContent, row[0]))
             cleanCount += 1
     print(f"Cleaned and updated {cleanCount} messages in Message.db")
-    print(f"Deleted {delCount} empty messages in Message.db")
+    print(f"There are {delCount} empty messages in Message.db")
     con.commit()
     updCur.close()  # close temporary cursor
 
