@@ -44,9 +44,9 @@ def getDateTime(messageRow : list[int | str]) -> datetime.datetime:
     """
     message_date : datetime
     try:                # Try getting message datetime with ms
-        message_date = datetime.strptime(messageRow[6], "%Y-%m-%d %H:%M:%S.%f")
+        message_date = datetime.datetime.strptime(messageRow[6], "%Y-%m-%d %H:%M:%S.%f")
     except ValueError:  # If that doesn't work, get message datetime wihtout ms
-        message_date = datetime.strptime(messageRow[6], "%Y-%m-%d %H:%M:%S")
+        message_date = datetime.datetime.strptime(messageRow[6], "%Y-%m-%d %H:%M:%S")
     return message_date
 
 
