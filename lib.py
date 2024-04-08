@@ -6,7 +6,7 @@ import discord as dc
 import datetime
 # Kaycee bot requires the 'message_content' intent to be enabled.
 
-def getConfig() -> dict:
+def getConfig() -> dict[str, (str | int | list[int])]:
     """Reads config from file and returns a config dict"""
     config = {}
     with open('config.json', 'r') as f:
@@ -266,7 +266,7 @@ def cleanAllData(con : sqlite3.Connection, cur : sqlite3.Cursor):
     updCur.close()  # close temporary cursor
 
 
-def cleanMsg(msgContent : str, sentBy : str, names : dict[str, str], config : dict, isTrainingData = False) -> str:
+def cleanMsg(msgContent : str, sentBy : str, names : dict[str, str], config : dict[str, (str | int | list[int])], isTrainingData = False) -> str:
     """Handles cleaning a message's contents by removing embedded links/emojis, replacing IDs with names, etc.
     
     Returns cleaned message content as a string
@@ -310,7 +310,7 @@ def cleanMsg(msgContent : str, sentBy : str, names : dict[str, str], config : di
     return msgContent
 
 
-def formatMsg(msgContent : str, sentBy : str, names : dict[str, str], config : dict, isTrainingData = False) -> str:
+def formatMsg(msgContent : str, sentBy : str, names : dict[str, str], config : dict[str, (str | int | list[int])], isTrainingData = False) -> str:
     """Formats a message into a simple string in the form of:
         "Name: Message Content"
     Example:
@@ -336,7 +336,7 @@ def formatMsg(msgContent : str, sentBy : str, names : dict[str, str], config : d
         return f"{names[sentBy]}: {msgContent}"
 
 
-def generateConversations(con : sqlite3.Connection, cur : sqlite3.Cursor, names : dict[str, str], config : dict):
+def generateConversations(con : sqlite3.Connection, cur : sqlite3.Cursor, names : dict[str, str], config : dict[str, (str | int | list[int])]):
     """Handles assigning conversids to each message in db that is not currently in a conversation.
     Messages are in the same conversation if they are in the same channel and are sent less than 8 hours apart (or are replying to a message).
 
