@@ -188,16 +188,6 @@ def initDB() -> tuple[sqlite3.Connection, sqlite3.Cursor]:
                     "conversid BIGINT" +
                     ");")
         print("Created 'Message' table in db")
-    
-    # Selects the "Conversation" table from db
-    table = cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name = 'Conversation';")
-    if table.fetchone() is None:  # Create the Conversation table if it is empty
-        cur.execute("CREATE TABLE Conversation(" +
-                    "conversid BIGINT," +
-                    "channelid BIGINT," +
-                    "messageid VARCHAR(2000)" +
-                    ");")
-        print("Created 'Conversation' table in db")
     return (con, cur)
 
 
