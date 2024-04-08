@@ -3,6 +3,7 @@ import os
 import re
 import json
 import discord as dc
+import datetime
 # Kaycee bot requires the 'message_content' intent to be enabled.
 
 def getConfig() -> dict:
@@ -33,6 +34,20 @@ def getNames() -> dict[str, str]:
         idMap = json.loads(f.read())
         f.close()
     return idMap
+
+
+def getDateTime(messageRow : list[int | str]) -> datetime.datetime:
+    """Returns a valid datetime object for when the given message was sent.
+    
+    Args:
+        `messageRow` : A row from db representing a single message
+    """
+    message_date : datetime
+    try:                # Try getting message datetime with ms
+        message_date = datetime.strptime(messageRow[6], "%Y-%m-%d %H:%M:%S.%f")
+    except ValueError:  # If that doesn't work, get message datetime wihtout ms
+        message_date = datetime.strptime(messageRow[6], "%Y-%m-%d %H:%M:%S")
+    return message_date
 
 
 def initBot(client : dc.Client):
@@ -180,7 +195,7 @@ def initDB() -> tuple[sqlite3.Connection, sqlite3.Cursor]:
         cur.execute("CREATE TABLE Conversation(" +
                     "conversid BIGINT," +
                     "channelid BIGINT," +
-                    "messageids VARCHAR(2000)" +
+                    "messageid VARCHAR(2000)" +
                     ");")
         print("Created 'Conversation' table in db")
     return (con, cur)
@@ -328,3 +343,67 @@ def formatMsg(msgContent : str, sentBy : str, names : dict[str, str], config : d
             return f"{name}: {msgContent}"
     else:
         return f"{names[sentBy]}: {msgContent}"
+
+
+def generateConversations(con : sqlite3.Connection, cur : sqlite3.Cursor, names : dict[str, str], config : dict):
+    """Handles assigning conversids to each message in db that is not currently in a conversation.
+    Messages are in the same conversation if they are in the same channel and are sent less than 8 hours apart (or are replying to a message).
+
+    Args:
+        `con` : Connection to database
+        `cur` : Cursor for connected database
+        `names` : dict of id/name pairs from names.json
+        `config` : config dict from config.json
+    """
+    # Create a second cursor temporarily so we can update as we iterate over the first cursor.
+    # This saves us from having to load the entire database into memory at once.
+    updCur = con.cursor()
+    
+    # Load both json files
+    names = getNames()
+    config = getConfig()
+    
+    # We first need to know the highest ID used for an existing Conversation, so we don't re-use the same ID for a new one
+    cur.execute("SELECT conversid " +
+                "FROM Message " +
+                "ORDER BY conversid DESC;")
+    lastConversID = cur.fetchone()[0]
+    
+    sortedMsgCount = 0  # keeps track of how many messages have been successfully sorted into a conversation
+    
+    # We want to iterate through messages in each channel separately, since a conversation will never span multiple channels.
+    for channelID in config["channelIDs"]:
+        cur.execute("SELECT * " +
+                    "FROM Message " +
+                    "WHERE channelid = ? " +
+                    "ORDER BY sent ASC;",
+                    (channelID,))
+        prevMsg = None
+        
+        # for each message in this channel, starting w/ the oldest...
+        for row in cur:
+            # If this message has already been assigned to a conversation, skip it.
+            if row[8] != -1:
+                prevMsg = row
+                continue
+            # If this is the first message in this channel, or the last message was more than 8 hours ago (and this message isn't a reply), make a new conversation ID for it.
+            elif prevMsg == None | (row[7] != None & getDateTime(prevMsg) < (getDateTime(row) - datetime.timedelta(hours=8))): 
+                lastConversID += 1
+                updCur.execute("UPDATE Message SET conversid = ? WHERE messageID = ?;", (lastConversID, row[0]))
+                prevMsg = row
+                sortedMsgCount += 1
+            # If it is replying, add it to the same conversation as the message it replied to.
+            elif (row[7] != None):
+                updCur.execute("SELECT conversid FROM Message WHERE messageID = ?;", (row[7],))
+                conversID = updCur.fetchone()[0]
+                updCur.execute("UPDATE Message SET conversid = ? WHERE messageID = ?;", (conversID, row[0]))
+                prevMsg = row
+                sortedMsgCount += 1
+            # Otherwise, add it to the same conversation as the previous message.
+            else:
+                updCur.execute("UPDATE Message SET conversid = ? WHERE messageID = ?;", (prevMsg[7], row[0]))
+                prevMsg = row
+                sortedMsgCount += 1
+        print(f"({names[str(channelID)]}) Sorted {sortedMsgCount} messages into conversations in Message.db")
+    con.commit()
+    updCur.close()  # close temporary cursor
