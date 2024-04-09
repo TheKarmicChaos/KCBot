@@ -330,15 +330,13 @@ def formatMsg(msgContent : str, sentBy : str, names : dict[str, str], config : d
         return f"{names[str(sentBy)]}: {msgContent}"
 
 
-def generateConversations(con : sqlite3.Connection, cur : sqlite3.Cursor, names : dict[str, str], config : dict[str, (str | int | list[int])]):
+def generateConversations(con : sqlite3.Connection, cur : sqlite3.Cursor):
     """Handles assigning conversids to each message in db that is not currently in a conversation.
     Messages are in the same conversation if they are in the same channel and are sent less than 8 hours apart (or are replying to a message).
 
     Args:
         `con` : Connection to database
         `cur` : Cursor for connected database
-        `names` : dict of id/name pairs from names.json
-        `config` : config dict from config.json
     """
     # Create a second cursor temporarily so we can update as we iterate over the first cursor.
     # This saves us from having to load the entire database into memory at once.
