@@ -389,12 +389,13 @@ def generateConversations(con : sqlite3.Connection, cur : sqlite3.Cursor, names 
                 if row[3] != prevMsg[3]:
                     prevMsgFromOtherUser = prevMsg
                 
-                # If the last message from another user was more than 6 hours ago (and this message isn't a reply), make a new conversation ID for it.
-                if (row[7] == None) & (getDateTime(prevMsgFromOtherUser) < (getDateTime(row) - datetime.timedelta(hours=6))):
+                # If the last message from another user was more than 8 hours ago (and this message isn't a reply), make a new conversation ID for it.
+                if (row[7] == None) & (getDateTime(prevMsgFromOtherUser) < (getDateTime(row) - datetime.timedelta(hours=8))):
                     biggestConversID += 1
                     updCur.execute("UPDATE Message SET conversid = ?, isFirstInConvers = 1 WHERE messageid = ?;", (biggestConversID, row[0]))
                     prevMsg = row
                     prevMsgConversID = biggestConversID
+                    prevMsgFromOtherUser = row
                     sortedMsgCount += 1
                     newConversCount += 1
                 # If it is a reply message, add it to the same conversation as the message it replied to.
