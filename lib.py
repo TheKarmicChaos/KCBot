@@ -327,7 +327,7 @@ def formatMsg(msgContent : str, sentBy : str, names : dict[str, str], config : d
             name = names[config["userToImpersonateID"]]
             return f"{name}: {msgContent}"
     else:
-        return f"{names[sentBy]}: {msgContent}"
+        return f"{names[str(sentBy)]}: {msgContent}"
 
 
 def generateConversations(con : sqlite3.Connection, cur : sqlite3.Cursor, names : dict[str, str], config : dict[str, (str | int | list[int])]):
@@ -435,7 +435,7 @@ def generateTrainingData(con : sqlite3.Connection, cur : sqlite3.Cursor, names :
 
     for (conversID,) in allConversIDs:
         # fetch the entire conversation from db
-        cur.execute("SELECT * FROM Message WHERE conversid = ? ORDER BY sent DESC;", (conversID,))
+        cur.execute("SELECT * FROM Message WHERE conversid = ? ORDER BY sent ASC;", (conversID,))
         # remember this convers as an iterable datatype (list of messages)
         convers = []
         for msg in cur:
@@ -444,21 +444,21 @@ def generateTrainingData(con : sqlite3.Connection, cur : sqlite3.Cursor, names :
         for index in range(len(convers)):
             msg = convers[index]
             # skip this message if content is empty, or this is the first message in conversation, or it is not sent by the impersonated user.
-            if msg[6] == "" | msg[9] == True | msg[3] != config["userToImpersonateID"]:
+            if msg[6] == "" or msg[9] == True or msg[3] != config["userToImpersonateID"]:
                 continue
             else:
                 # get the previous 15 messages in this conversation
-                recentMsgHistory = convers[max(0, index - 15):(index - 1)]
+                recentMsgHistory = convers[max(0, index - 15):index]
                 # convert the messages into formatted messages
                 formattedMsgHistory = []
                 for unformattedMsg in recentMsgHistory:
-                    formattedMsgHistory.append(formatMsg(unformattedMsg[5], unformattedMsg[3], names, config, True))
+                    formattedMsgHistory.append(formatMsg(unformattedMsg[6], unformattedMsg[3], names, config, True))
                 # combine them into a single chat history string
                 chatHistory = "\n".join(formattedMsgHistory)
                 # add this to the trainingOutput list
                 trainingOutput.append({
                     "input": chatHistory,
-                    "output": msg[5]
+                    "output": msg[6]
                 })
     print(f"{len(trainingOutput)} sets of training data created from {len(allConversIDs)} conversations")
     return trainingOutput
