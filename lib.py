@@ -447,12 +447,14 @@ def generateTrainingData(con : sqlite3.Connection, cur : sqlite3.Cursor, names :
             if msg[6] == "" or msg[9] == True or msg[3] != config["userToImpersonateID"]:
                 continue
             else:
-                # get the previous 15 messages in this conversation
-                recentMsgHistory = convers[max(0, index - 15):index]
+                # get the previous 20 messages in this conversation
+                recentMsgHistory = convers[max(0, index - 20):index]
                 # convert the messages into formatted messages
                 formattedMsgHistory = []
                 for unformattedMsg in recentMsgHistory:
-                    formattedMsgHistory.append(formatMsg(unformattedMsg[6], unformattedMsg[3], names, config, True))
+                    # Don't add empty messages to training data (these are usually images)
+                    if unformattedMsg[6] != "":
+                        formattedMsgHistory.append(formatMsg(unformattedMsg[6], unformattedMsg[3], names, config, True))
                 # combine them into a single chat history string
                 chatHistory = "\n".join(formattedMsgHistory)
                 # add this to the trainingOutput list
