@@ -148,8 +148,8 @@ class ScrapeClient(dc.Client):
                 count += 1
             print(f'({chan}) Saving {count} messages to db...')
             try:    # try inserting new rows, then commit
-                for newRow in msgBatch:
-                    cur.execute("INSERT INTO Message VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", newRow)
+                cur.executemany("INSERT INTO Message (messageid, channelid, channelname, userid, username, sent, content, replyid, conversid, isFirstInConvers) " +
+                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", msgBatch)
                 con.commit()
             except: # rollback if this fails
                 print("WARNING - Failed to write to database")
@@ -162,7 +162,7 @@ class ScrapeClient(dc.Client):
         print('------')
         
         print(f'Generating conversations...')
-        #generateConversations(con, cur, self.names, self.config)
+        generateConversations(con, cur, self.names, self.config)
         print('------')
 
 
@@ -198,8 +198,7 @@ def initDB() -> tuple[sqlite3.Connection, sqlite3.Cursor]:
                     "content VARCHAR(2000)," +
                     "replyid BIGINT," +
                     "conversid BIGINT," +
-                    "isFirstInConvers BOOLEAN" +
-                    ");")
+                    "isFirstInConvers BOOLEAN);")
         print("Created 'Message' table in db")
     return (con, cur)
 
@@ -412,7 +411,7 @@ def generateConversations(con : sqlite3.Connection, cur : sqlite3.Cursor, names 
                     prevMsg = row
                     sortedMsgCount += 1
         print(f"({names[str(channelID)]}) Sorted {sortedMsgCount} messages into {(newConversCount)} conversations in Message.db")
-    #con.commit()
+    con.commit()
     updCur.close()  # close temporary cursor
 
 
