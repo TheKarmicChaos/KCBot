@@ -147,14 +147,18 @@ class ScrapeClient(dc.Client):
                 msgBatch.append(msg)
                 count += 1
             print(f'({chan}) Saving {count} messages to db...')
-            for msg in msgBatch:
-                print(msg)
-            #insertMsg(con, cur, msgBatch)
+            try:    # try inserting new rows, then commit
+                for newRow in msgBatch:
+                    cur.execute("INSERT INTO Message VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", newRow)
+                con.commit()
+            except: # rollback if this fails
+                print("WARNING - Failed to write to database")
+                con.rollback()
             print(f'({chan}) Done!')
         print('------')
         
         print(f'Cleaning up messages...')
-        #cleanAllData(con, cur)
+        cleanAllData(con, cur)
         print('------')
         
         print(f'Generating conversations...')
@@ -221,23 +225,6 @@ def getMostRecent(con : sqlite3.Connection, cur : sqlite3.Cursor, channelid : in
         # If this fails, we may not have any messages for this channel in db, so return None to continue under this assumption.
         print("ERROR - Failed to retrieve most recent message for this channel.")
         return None
-
-
-def insertMsg(con : sqlite3.Connection, cur : sqlite3.Cursor, newRows : list[tuple]):
-    """Inserts an array of data as several new rows into connected table.
-    
-    Args:
-        `con` : Connection to database
-        `cur` : Cursor for connected database
-        `newRows` : List of tuples, each describing a new row to add to database
-    """
-    
-    try:    # try inserting new rows, then commit
-        cur.executemany("INSERT INTO Message VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", newRows)
-        con.commit()
-    except: # rollback if this fails
-        print("WARNING - Failed to write to database")
-        con.rollback()
 
 
 def cleanAllData(con : sqlite3.Connection, cur : sqlite3.Cursor):
