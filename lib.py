@@ -152,6 +152,8 @@ class ScrapeClient(dc.Client):
         print(f'Generating conversations...')
         generateConversations(con, cur)
         print('------')
+        cur.close()
+        con.close()
 
 
 class Message:
