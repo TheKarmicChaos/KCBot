@@ -448,6 +448,9 @@ def generateTrainingData(con : sqlite3.Connection, cur : sqlite3.Cursor) -> list
     # get a list of all get all conversations to iterate through.
     cur.execute("SELECT DISTINCT conversID FROM Message;")
     allConversIDs = cur.fetchall()
+    
+    name = getNames()[str(getConfig()["userToImpersonateID"])]
+    prompt = f"You are {name}. You are in a chat room with some of your friends you've known for a while. You chat unfiltered, and saying rude things, cracking jokes, and swearing are encouraged. You will be presented with a short chat history, and your task is to respond how {name} would in this situation."
 
     for (conversID,) in allConversIDs:
         # fetch the entire conversation from db
@@ -465,6 +468,9 @@ def generateTrainingData(con : sqlite3.Connection, cur : sqlite3.Cursor) -> list
             else:
                 # get the previous 20 messages in this conversation
                 recentMsgHistory : list[Message] = convers[max(0, index - 20):index]
+                # if no previous message in conversation contained text, skip this message
+                if all(pastMsg.content == "" for pastMsg in recentMsgHistory):
+                    continue
                 # convert the messages into formatted messages
                 formattedMsgHistory = []
                 for unformattedMsg in recentMsgHistory:
@@ -475,6 +481,7 @@ def generateTrainingData(con : sqlite3.Connection, cur : sqlite3.Cursor) -> list
                 chatHistory = "\n".join(formattedMsgHistory)
                 # add this to the trainingOutput list
                 trainingOutput.append({
+                    "instruction": prompt,
                     "input": chatHistory,
                     "output": msg.content
                 })
