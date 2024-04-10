@@ -3,3 +3,4 @@ test_env.py
 /__pycache__
 /db
 /tmp_trainer
+/model.bin
