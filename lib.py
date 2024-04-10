@@ -36,18 +36,6 @@ def getNames() -> dict[str, str]:
     return idMap
 
 
-def getDateTime(messageRow : list[int | str]) -> datetime.datetime:
-    """Returns a valid datetime object for when the given message was sent.
-    
-    Args:
-        `messageRow` : A row from db representing a single message
-    """
-    message_date : datetime
-    try:                # Try getting message datetime with ms
-        message_date = datetime.datetime.strptime(messageRow[5], "%Y-%m-%d %H:%M:%S.%f%z")
-    except ValueError:  # If that doesn't work, get message datetime wihtout ms
-        message_date = datetime.datetime.strptime(messageRow[5], "%Y-%m-%d %H:%M:%S%z")
-    return message_date
 
 
 def initBot(client : dc.Client):
@@ -162,8 +150,36 @@ class ScrapeClient(dc.Client):
         print('------')
         
         print(f'Generating conversations...')
-        generateConversations(con, cur, self.names, self.config)
+        generateConversations(con, cur)
         print('------')
+
+
+class Message:
+    def __init__(self, dbRow : list[str | int]) -> None:
+        self.messageid = dbRow[0]
+        self.channelid = dbRow[1]
+        self.channelname = dbRow[2]
+        self.userid = dbRow[3]
+        self.username = dbRow[4]
+        self.sent = dbRow[5]
+        self.content = dbRow[6]
+        self.replyid = dbRow[7]
+        self.conversid = dbRow[8]
+        self.isFirstInConvers = dbRow[9]
+        
+        
+def getDateTime(message : Message) -> datetime.datetime:
+    """Returns a valid datetime object for when the given message was sent.
+    
+    Args:
+        `message` : A Message class object
+    """
+    message_date : datetime
+    try:                # Try getting message datetime with ms
+        message_date = datetime.datetime.strptime(message.sent, "%Y-%m-%d %H:%M:%S.%f%z")
+    except ValueError:  # If that doesn't work, get message datetime wihtout ms
+        message_date = datetime.datetime.strptime(message.sent, "%Y-%m-%d %H:%M:%S%z")
+    return message_date
 
 
 # DATABASE FUNCTIONS
@@ -245,14 +261,14 @@ def cleanAllData(con : sqlite3.Connection, cur : sqlite3.Cursor):
     delCount = 0
     cur.execute("SELECT * FROM Message ORDER BY sent ASC;")
     for row in cur:     # for each message in db...
-        #print(row)
-        newContent = cleanMsg(row[6], row[3], names, config, isTrainingData = True) # clean the contents
+        msg = Message(row)
+        newContent = cleanMsg(msg.content, msg.userid, names, config, isTrainingData = True) # clean the contents
         if newContent == "":        # If the message has no content, delete it from the database. (current version keeps empty messages for testing)
-            updCur.execute("UPDATE Message SET content = ? WHERE messageID = ?;", (newContent, row[0]))
+            updCur.execute("UPDATE Message SET content = ? WHERE messageID = ?;", (newContent, msg.messageid))
             #updCur.execute("DELETE FROM Message WHERE messageID = ?;", (row[0],))
             delCount += 1
-        elif newContent != row[6]:  # Otherwise, update it with the cleaned content if it has changed
-            updCur.execute("UPDATE Message SET content = ? WHERE messageID = ?;", (newContent, row[0]))
+        elif newContent != msg.content:  # Otherwise, update it with the cleaned content if it has changed
+            updCur.execute("UPDATE Message SET content = ? WHERE messageID = ?;", (newContent, msg.messageid))
             cleanCount += 1
     print(f"Cleaned and updated {cleanCount} messages in Message.db")
     print(f"There are {delCount} empty messages in Message.db")
@@ -362,70 +378,72 @@ def generateConversations(con : sqlite3.Connection, cur : sqlite3.Cursor):
         sortedMsgCount = 0              # Keeps track of how many messages have been successfully sorted into a conversation
         newConversCount = 0             # Keeps track of how many new conversations have been made
         
-        prevMsg = None                  # Keeps track of the previous message
-        prevMsgFromOtherUser = None     # Keeps track of the previous message sent by a different user
-        prevMsgConversID = None         # Keeps track of the conversid of prevMsg
+        prevMsg : Message = None                # Keeps track of the previous message
+        prevMsgFromOtherUser : Message = None   # Keeps track of the previous message sent by a different user
+        prevMsgConversID : int = None           # Keeps track of the conversid of prevMsg. Must be tracked separately since we don't commit changes until the end.
         
         # for each message in this channel, starting w/ the oldest...
         for row in cur:
+            msg = Message(row)
             # If this message has already been assigned to a conversation, skip it.
-            if row[8] != -1:
-                prevMsg = row
-                prevMsgFromOtherUser = row
+            if msg.conversid != -1:
+                prevMsg = msg
+                prevMsgFromOtherUser = msg
                 continue
-             # If this is the first message in this channel, make a new conversID for it.
+            # If this is the first message in this channel, make a new conversID for it.
             elif prevMsg == None:
                 biggestConversID += 1
-                updCur.execute("UPDATE Message SET conversid = ?, isFirstInConvers = 1 WHERE messageid = ?;", (biggestConversID, row[0]))
-                prevMsg = row
-                prevMsgFromOtherUser = row
+                updCur.execute("UPDATE Message SET conversid = ?, isFirstInConvers = 1 WHERE messageid = ?;", (biggestConversID, msg.messageid))
+                prevMsg = msg
+                prevMsgFromOtherUser = msg
                 prevMsgConversID = biggestConversID
                 sortedMsgCount += 1
                 newConversCount += 1
             else:
                 # If the previous message is sent by a different user than the current message, update prevMsgFromOtherUser.
-                if row[3] != prevMsg[3]:
+                if msg.userid != prevMsg.userid:
                     prevMsgFromOtherUser = prevMsg
                 
                 # If the last message from another user was more than 8 hours ago (and this message isn't a reply), make a new conversation ID for it.
-                if (row[7] == None) & (getDateTime(prevMsgFromOtherUser) < (getDateTime(row) - datetime.timedelta(hours=8))):
+                if (msg.replyid == None) & (getDateTime(prevMsgFromOtherUser) < (getDateTime(msg) - datetime.timedelta(hours=8))):
                     biggestConversID += 1
-                    updCur.execute("UPDATE Message SET conversid = ?, isFirstInConvers = 1 WHERE messageid = ?;", (biggestConversID, row[0]))
-                    prevMsg = row
+                    updCur.execute("UPDATE Message SET conversid = ?, isFirstInConvers = 1 WHERE messageid = ?;", (biggestConversID, msg.messageid))
+                    prevMsg = msg
                     prevMsgConversID = biggestConversID
-                    prevMsgFromOtherUser = row
+                    prevMsgFromOtherUser = msg
                     sortedMsgCount += 1
                     newConversCount += 1
                 # If it is a reply message, add it to the same conversation as the message it replied to.
-                elif (row[7] != None):
-                    updCur.execute("SELECT conversid FROM Message WHERE messageid = ?;", (row[7],))
+                elif (msg.replyid != None):
+                    updCur.execute("SELECT conversid FROM Message WHERE messageid = ?;", (msg.replyid,))
                     conversID = updCur.fetchone()[0]
-                    updCur.execute("UPDATE Message SET conversid = ?, isFirstInConvers = 0 WHERE messageid = ?;", (conversID, row[0]))
-                    prevMsg = row
+                    updCur.execute("UPDATE Message SET conversid = ?, isFirstInConvers = 0 WHERE messageid = ?;", (conversID, msg.messageid))
+                    prevMsg = msg
                     prevMsgConversID = conversID
                     sortedMsgCount += 1
                 # Otherwise, add it to the same conversation as the previous message.
                 else:
-                    updCur.execute("UPDATE Message SET conversid = ?, isFirstInConvers = 0 WHERE messageid = ?;", (prevMsgConversID, row[0]))
-                    prevMsg = row
+                    updCur.execute("UPDATE Message SET conversid = ?, isFirstInConvers = 0 WHERE messageid = ?;", (prevMsgConversID, msg.messageid))
+                    prevMsg = msg
                     sortedMsgCount += 1
         print(f"({names[str(channelID)]}) Sorted {sortedMsgCount} messages into {(newConversCount)} conversations in Message.db")
     con.commit()
     updCur.close()  # close temporary cursor
 
 
-def generateTrainingData(con : sqlite3.Connection, cur : sqlite3.Cursor, names : dict[str, str], config : dict) -> list[dict[str, str]]:
+def generateTrainingData(con : sqlite3.Connection, cur : sqlite3.Cursor) -> list[dict[str, str]]:
     """__description__
     
     Args:
         `con` : Connection to database
         `cur` : Cursor for connected database
-        `names` : dict of id/name pairs from names.json
-        `config` : config dict from config.json
     """
-    
     print("Creating training data dict with prompts and input/outputs")
     trainingOutput = []
+    
+    # Load both json files
+    names = getNames()
+    config = getConfig()
         
     # get a list of all get all conversations to iterate through.
     cur.execute("SELECT DISTINCT conversID FROM Message;")
@@ -434,31 +452,31 @@ def generateTrainingData(con : sqlite3.Connection, cur : sqlite3.Cursor, names :
     for (conversID,) in allConversIDs:
         # fetch the entire conversation from db
         cur.execute("SELECT * FROM Message WHERE conversid = ? ORDER BY sent ASC;", (conversID,))
-        # remember this convers as an iterable datatype (list of messages)
+        # remember this convers as an iterable datatype (list of Message objects)
         convers = []
-        for msg in cur:
-            convers.append(msg)
+        for row in cur:
+            convers.append(Message(row))
         # iterate over messages in this convers
         for index in range(len(convers)):
-            msg = convers[index]
+            msg : Message = convers[index]
             # skip this message if content is empty, or this is the first message in conversation, or it is not sent by the impersonated user.
-            if msg[6] == "" or msg[9] == True or msg[3] != config["userToImpersonateID"]:
+            if msg.content == "" or msg.isFirstInConvers == 1 or msg.userid != config["userToImpersonateID"]:
                 continue
             else:
                 # get the previous 20 messages in this conversation
-                recentMsgHistory = convers[max(0, index - 20):index]
+                recentMsgHistory : list[Message] = convers[max(0, index - 20):index]
                 # convert the messages into formatted messages
                 formattedMsgHistory = []
                 for unformattedMsg in recentMsgHistory:
                     # Don't add empty messages to training data (these are usually images)
-                    if unformattedMsg[6] != "":
-                        formattedMsgHistory.append(formatMsg(unformattedMsg[6], unformattedMsg[3], names, config, True))
+                    if unformattedMsg.content != "":
+                        formattedMsgHistory.append(formatMsg(unformattedMsg.content, unformattedMsg.userid, names, config, True))
                 # combine them into a single chat history string
                 chatHistory = "\n".join(formattedMsgHistory)
                 # add this to the trainingOutput list
                 trainingOutput.append({
                     "input": chatHistory,
-                    "output": msg[6]
+                    "output": msg.content
                 })
     print(f"{len(trainingOutput)} sets of training data created from {len(allConversIDs)} conversations")
     return trainingOutput
