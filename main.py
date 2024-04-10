@@ -20,6 +20,7 @@ def runScrapeBot():
 def querySQL(query):
     (con, cur) = initDB()
     res = cur.execute(query)
-    print(cur.fetchall())
+    for row in cur:
+        print(cur.fetchone())
 
-querySQL("SELECT COUNT(*) FROM Message")
+runScrapeBot()
