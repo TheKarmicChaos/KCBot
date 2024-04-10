@@ -432,13 +432,13 @@ def generateConversations(con : sqlite3.Connection, cur : sqlite3.Cursor):
 
 
 def generateTrainingData(con : sqlite3.Connection, cur : sqlite3.Cursor) -> list[dict[str, str]]:
-    """__description__
+    """Creates and returns a list of prompt/input/output dicts to be used as training data.
     
     Args:
         `con` : Connection to database
         `cur` : Cursor for connected database
     """
-    print("Creating training data dict with prompts and input/outputs")
+    print("Creating training data dict with prompt/input/outputs")
     trainingOutput = []
     
     # Load both json files
