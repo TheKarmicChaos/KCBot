@@ -22,16 +22,16 @@ x Write code to clean dataset (replace mentions & real names, remove links/image
 Apr 10:
 x Write code to parse dataset from individual messages into conversations (possibly include LDA at this part).
 
-- Improve conversation categorization to be as coherent as possible before using it to start training.
+x Improve conversation categorization to be as coherent as possible before using it to start training.
 
 Apr 17:
 x Write func to create a training dataset, using each conversation to create a prompt/input/response with the response being based on each of my existing messages. The collection of these prompt/input/repsonses will be the training data for the LLM.
 
 x Install a Python package I can use to train an existing LLM. The alpaca dataset is my template.
 
-- Write func to save our training dataset as a file format that can be read by SFTTrainer.
+x Write func to save our training dataset as a file format that can be read by SFTTrainer.
 
 May 1:
-- Hook up training data to LLM via Python script, train it for a few days and monitor progress.
+x Hook up training data to LLM via Python script, train it for a few days and monitor progress.
 
 - This might take a few weeks to finish training if all goes well.
