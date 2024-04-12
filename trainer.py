@@ -25,14 +25,14 @@ def formatting_prompts_func(examples):
         input_text = examples["input"][i]
         response = examples["output"][i]
 
-        text = f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
-        
-        ### Instruction:\n{prompt}
-        
-        ### Input:\n{input_text}
-        
-        ### Response:\n{response}
-        """
+        text = f"""### Instruction:
+{prompt}
+
+### Input:
+{input_text}
+
+### Response:
+{response}"""
         output_text.append(text)
 
     return output_text
@@ -59,7 +59,7 @@ trainingArgs = transformers.TrainingArguments(
     save_strategy = "epoch",        # Save a checkpoint of the model at the end of each epoch.
     evaluation_strategy = "epoch",  # Evaluate the model at the end of each epoch. This gives us a loss value to determine which checkpoint is the current best.
     logging_strategy = "epoch",      # Make a log at the end of each epoch.
-    weight_decay = 0.1,
+    weight_decay = 0.05,
 )
 
 trainer = trl.SFTTrainer(
