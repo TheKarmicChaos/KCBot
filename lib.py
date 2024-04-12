@@ -468,8 +468,8 @@ def generateTrainingData(con : sqlite3.Connection, cur : sqlite3.Cursor) -> list
             if msg.content == "" or msg.isFirstInConvers == 1 or msg.userid != config["userToImpersonateID"]:
                 continue
             else:
-                # get the previous 20 messages in this conversation
-                recentMsgHistory : list[Message] = convers[max(0, index - 20):index]
+                # get the previous 10 messages in this conversation
+                recentMsgHistory : list[Message] = convers[max(0, index - 10):index]
                 # if no previous message in conversation contained text, skip this message
                 if all(pastMsg.content == "" for pastMsg in recentMsgHistory):
                     continue
