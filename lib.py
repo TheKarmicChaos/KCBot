@@ -485,7 +485,7 @@ def generateTrainingData(con : sqlite3.Connection, cur : sqlite3.Cursor) -> list
                 trainingOutput.append({
                     "instruction": prompt,
                     "input": chatHistory,
-                    "output": msg.content
+                    "output": formatMsg(msg.content, msg.userid, config, isTrainingData=True)
                 })
     print(f"{len(trainingOutput)} sets of training data created from {len(allConversIDs)} conversations")
     return trainingOutput
