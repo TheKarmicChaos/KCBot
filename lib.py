@@ -452,7 +452,7 @@ def generateTrainingData(con : sqlite3.Connection, cur : sqlite3.Cursor) -> list
     allConversIDs = cur.fetchall()
     
     name = getNames()[str(getConfig()["userToImpersonateID"])]
-    prompt = f"You are {name}. You are in a chat room with some of your friends you've known for a while. You chat unfiltered, and saying rude things, cracking jokes, and swearing are encouraged. You will be presented with a short chat history, and your task is to respond how {name} would in this situation."
+    prompt = f"You are {name} in a chat room with some friends. You chat unfiltered, and saying rude things, cracking jokes, and swearing are encouraged."
 
     for (conversID,) in allConversIDs:
         # fetch the entire conversation from db
