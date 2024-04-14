@@ -7,8 +7,11 @@ All parties in the server from which the message history data have given consent
 * Install all required Python packages (listed below)
 * Create a Discord bot with message content intent enabled.
 * Download KCBot and put the directory anywhere you want on your system. All directories and files used by the program will be locally saved to this location.
-* In the KCBot directory, open the file named "config.json" and replace the "xxxxx" placeholders with your bot's authentication token, the ID of your discord server, and the IDs of each channel in the server that the bot can scrape/chat in.
+* In the KCBot directory, open the file named "config.json" and replace the "xxxxx" placeholders with the appropriate information (bot authentication token, ID of your discord server, IDs of each channel that the bot can scrape/chat in, etc).
 * Also open the file named "names.json" and list all ID/name pairs you wish to replace in the training data. Occurances of these IDs in the dataset will be replaced by the corresponding string listed in this file. All @mentions, #channel mentions, @role mentions, etc not listed here will instead be completely deleted from the data.
+* Add your bot to your discord server and run scrape.py to have it collect data.
+* Run trainer.py and monitor its progress over a few weeks. loss should get closer to 0 each epoch if the training is going well. You can use chat.py to test checkpoints by giving them an input to respond to.
+
 
 ## __Required package installations:__
 * [discord.py][https://discordpy.readthedocs.io/en/stable/intro.html]
