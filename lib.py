@@ -4,6 +4,7 @@ import re
 import json
 import discord as dc
 import datetime
+from chat import generate_message
 # Kaycee bot requires the 'message_content' intent to be enabled.
 
 def getConfig() -> dict[str, (str | int | list[int])]:
@@ -94,7 +95,7 @@ class ChatClient(dc.Client):
                         msgHistory.append(formatMsg(messageContent, str(msg.author.id), self.names, self.config))
                 # combine the messages into a single input string
                 msgHistoryStr = "\n".join(msgHistory)
-                response = generateMessage(msgHistory)
+                response = generate_message(msgHistory)
                 await message.reply(response, mention_author=True)
             is_generating = False
 
