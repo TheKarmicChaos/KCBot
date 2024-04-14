@@ -19,12 +19,11 @@ collator = trl.DataCollatorForCompletionOnlyLM(response_template, tokenizer=toke
 
 def formatting_prompts_func(examples):
     output_text = []
-    
+
     for i in range(len(examples["instruction"])):
         prompt = examples["instruction"][i]
         input_text = examples["input"][i]
         response = examples["output"][i]
-
         text = f"""### Instruction:
 {prompt}
 
@@ -34,9 +33,9 @@ def formatting_prompts_func(examples):
 ### Response:
 {response}"""
         output_text.append(text)
-
     return output_text
 
+#TODO: This is super inefficient. Maybe I can simplify it?
 (con, cur) = initDB()
 trainingData = generateTrainingData(con, cur)
 # Save this to a json file, then immediately load it for SFTTrainer
@@ -44,11 +43,11 @@ with open('db' + os.sep + 'input_output_dataset.json', 'w') as f:
     json.dump(trainingData, f)
     f.close()
 dataset = load_dataset("json", data_files = "db" + os.sep + "input_output_dataset.json")
+
 # Split our dataset into a 80-20% split for training/evaluation respectively.
 split_dataset = dataset['train'].train_test_split(test_size=0.2, seed=42)
 print(split_dataset)
 print("-----")
-
 
 
 trainingArgs = transformers.TrainingArguments(
@@ -69,14 +68,14 @@ trainer = trl.SFTTrainer(
     train_dataset = split_dataset['train'],
     eval_dataset = split_dataset['test'],
     formatting_func = formatting_prompts_func,
-    max_seq_length = 512,
+    max_seq_length = 1024,
     packing = False,
     dataset_batch_size = 16,
     data_collator = collator,
 )
 
 # You can turn this on if your GPU is CUDA-enabled. Only do this if you have a GPU with more memory than your CPU (or a lot of GPUs).
-# Be sure to first install pytorch with CUDA via the instructions at https://pytorch.org/get-started/locally/
+# Be sure to first reinstall pytorch with CUDA via the instructions at https://pytorch.org/get-started/locally/
 # model.cuda()
 print("-----")
 
