@@ -1,8 +1,67 @@
-from lib import getNames, getConfig
+from lib import *
 from trl import SFTTrainer
 import transformers
 
-model = './tmp_trainer/checkpoint-10830'         # replace this with the dir of the checkpoint/model you want to chat with
+class ChatClient(dc.Client):
+    """Discord bot client for sending and responding to chat messages.
+    When activated with initBot() it will respond to messages starting with "/kc"
+    in the the channels specified in config.json.
+    """
+    config = getConfig()
+    names = getNames()
+    guildID = config["guildID"]
+    channelIDs = config["channelIDs"]
+    is_generating = False
+    
+    async def on_ready(self):
+        print(f'Logged in as {self.user} (ID: {self.user.id})')
+        print(f'Guild: "{self.get_guild(self.guildID)}"')
+        print('------')
+        print(f'Chatbot enabled in the following channels:')
+        for channel in self.channelIDs:
+            print(self.get_channel(channel))
+        print('------')
+
+    async def on_message(self, message: dc.Message):
+        # we do not want the bot to reply to itself
+        if message.author.id == self.user.id:
+            return
+
+        if message.content.startswith('/kc'):
+            
+            # we want the bot to ignore messages if it is currently generating a response
+            if self.is_generating:
+                return
+            
+            self.is_generating = True
+            async with message.channel.typing(): # start typing to let users know a response is coming
+                
+                # Get the recent message history, cleaned and formatted
+                msgHistory = []
+                async for msg in message.channel.history(limit=10):
+                    messageContent = cleanMsg(msg.content, str(msg.author.id), self.names, self.config)
+                    if messageContent != "":
+                        msgHistory.append(formatMsg(messageContent, str(msg.author.id), self.names, self.config))
+                # combine the messages into a single input string
+                msgHistoryStr = "\n".join(reversed(msgHistory))
+                response = generate_message(msgHistoryStr)
+                print(msgHistoryStr)
+                await message.reply(response, mention_author=True)
+            self.is_generating = False
+
+# Code for running chat bot
+def runChatBot():
+    intents = dc.Intents.default()
+    intents.message_content = True
+
+    client = ChatClient(intents=intents)
+    initBot(client)
+
+
+# ----------------------------------------------------------------------------------
+
+
+model = './tmp_trainer/checkpoint-190'         # replace this with the dir of the checkpoint/model you want to chat with
 #model = transformers.AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
 tokenizer = transformers.AutoTokenizer.from_pretrained("facebook/opt-350m")
 
@@ -26,14 +85,14 @@ def generate_message(inputText : str) -> str:
 {inputText}
 
 ### Response:
-Tom: 
 """
         completedText = generator(
                 text_inputs = text,
                 return_full_text = False,       # Only return the added text
                 do_sample = True,
-                temperature = 0.7)
+                temperature = 0.8)
         return completedText[0]['generated_text']
+
 
 testmsg1 = """Tom: My computer is so fucking hot right now.
 Jeremy: cook an egg on it
@@ -54,5 +113,8 @@ Tom: Oh yeah, I don't think I mentioned this before: The AI will literally belie
 Tom: badger
 Rhett: counter point, just make it think that it has schizophrenia. badger"""
 
-# Replace the input text with whatever input you want to model to respond to.
-print(generate_message(testmsg2))
+# Use this line for testing. Replace the input text with whatever input you want to model to respond to.
+# print(generate_message(testmsg2))
+
+# Use this line if you want the bot to run in discord and respond to messages
+# runChatBot()

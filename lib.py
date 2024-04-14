@@ -4,7 +4,6 @@ import re
 import json
 import discord as dc
 import datetime
-from chat import generate_message
 # Kaycee bot requires the 'message_content' intent to be enabled.
 
 def getConfig() -> dict[str, (str | int | list[int])]:
@@ -53,51 +52,7 @@ def initBot(client : dc.Client):
         print("Could not load config.json properly. Perhaps you forgot to replace the placeholders?")
 
 
-class ChatClient(dc.Client):
-    """Discord bot client for sending and responding to chat messages.
-    When activated with initBot() it will respond to messages starting with "/kc"
-    in the the channels specified in config.json.
-    """
-    config = getConfig()
-    names = getNames()
-    guildID = config["guildID"]
-    channelIDs = config["channelIDs"]
-    
-    async def on_ready(self):
-        print(f'Logged in as {self.user} (ID: {self.user.id})')
-        print(f'Guild: "{self.get_guild(self.guildID)}"')
-        print('------')
-        print(f'Chatbot enabled in the following channels:')
-        for channel in self.channelIDs:
-            print(self.get_channel(channel))
-        print('------')
 
-    async def on_message(self, message: dc.Message):
-        # we do not want the bot to reply to itself
-        if message.author.id == self.user.id:
-            return
-
-        if message.content.startswith('/kc'):
-            global is_generating
-            
-            # we want the bot to ignore messages if it is currently generating a response
-            if is_generating:
-                return
-            
-            is_generating = True
-            async with message.channel.typing(): # start typing to let users know a response is coming
-                
-                # Get the recent message history, cleaned and formatted
-                msgHistory = []
-                async for msg in message.channel.history(limit=10, oldest_first=True):
-                    messageContent = cleanMsg(msg.content, str(msg.author.id), self.names, self.config)
-                    if messageContent != "":
-                        msgHistory.append(formatMsg(messageContent, str(msg.author.id), self.names, self.config))
-                # combine the messages into a single input string
-                msgHistoryStr = "\n".join(msgHistory)
-                response = generate_message(msgHistory)
-                await message.reply(response, mention_author=True)
-            is_generating = False
 
 
 class ScrapeClient(dc.Client):
