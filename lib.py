@@ -58,6 +58,7 @@ class ChatClient(dc.Client):
     in the the channels specified in config.json.
     """
     config = getConfig()
+    names = getNames()
     guildID = config["guildID"]
     channelIDs = config["channelIDs"]
     
@@ -75,13 +76,27 @@ class ChatClient(dc.Client):
         if message.author.id == self.user.id:
             return
 
-        if message.content.startswith('/kc '):
-            prompt = message.content[4:]
-            (con, cur) = initDB()
-            # TODO: Run the prompt through AI and send the result as a discord message.
-            result = cur.execute(prompt)
-            # Placeholder for when AI part of project is finished.
-            await message.reply(result.fetchmany(10), mention_author=True)
+        if message.content.startswith('/kc'):
+            global is_generating
+            
+            # we want the bot to ignore messages if it is currently generating a response
+            if is_generating:
+                return
+            
+            is_generating = True
+            async with message.channel.typing(): # start typing to let users know a response is coming
+                
+                # Get the recent message history, cleaned and formatted
+                msgHistory = []
+                async for msg in message.channel.history(limit=10, oldest_first=True):
+                    messageContent = cleanMsg(msg.content, str(msg.author.id), self.names, self.config)
+                    if messageContent != "":
+                        msgHistory.append(formatMsg(messageContent, str(msg.author.id), self.names, self.config))
+                # combine the messages into a single input string
+                msgHistoryStr = "\n".join(msgHistory)
+                response = generateMessage(msgHistory)
+                await message.reply(response, mention_author=True)
+            is_generating = False
 
 
 class ScrapeClient(dc.Client):
