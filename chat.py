@@ -1,39 +1,41 @@
-from lib import *
+from lib import getNames, getConfig
 from trl import SFTTrainer
 import transformers
 
-#model = './tmp_trainer/checkpoint-570'         # replace this with the dir of the checkpoint/model you want to chat with
-model = transformers.AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
+model = './tmp_trainer/checkpoint-10830'         # replace this with the dir of the checkpoint/model you want to chat with
+#model = transformers.AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
 tokenizer = transformers.AutoTokenizer.from_pretrained("facebook/opt-350m")
 
 generator = transformers.pipeline(
         task = 'text-generation',
         model = model,
         tokenizer = tokenizer,
-        max_new_tokens = 100,   # Limit the amount of new tokens the AI can generate to just 100.
+        max_new_tokens = 200,   # Limit the amount of new tokens the AI can generate to just 100.
         device = "cpu",          # change this to an int to use the GPU of that ordinal rank instead (0 if you have one GPU)
-        #exponential_decay_length_penalty = (20, 1.3)
+        exponential_decay_length_penalty = (50, 1.1)
 )
 
 def generate_message(inputText : str) -> str:
         name = getNames()[str(getConfig()["userToImpersonateID"])]
-        prompt = f"You are {name} in a chat room with some friends. You chat unfiltered, and saying rude things, cracking jokes, and swearing are encouraged. Send the next message as {name}."
+        prompt = f"You are {name} in a chat room with some friends. You chat unfiltered, and saying rude things, cracking jokes, and swearing are encouraged."
 
         text = f"""### Instruction:
 {prompt}
 
-### Chat:
+### Input:
 {inputText}
+
+### Response:
+Tom: 
 """
         completedText = generator(
                 text_inputs = text,
                 return_full_text = False,       # Only return the added text
                 do_sample = True,
-                temperature = 0.5)
+                temperature = 0.7)
         return completedText[0]['generated_text']
 
-# Replace the input text with whatever input you want to model to respond to.
-print(generate_message("""Tom: My computer is so fucking hot right now.
+testmsg1 = """Tom: My computer is so fucking hot right now.
 Jeremy: cook an egg on it
 Jeremy: but dont eat it
 they put something in it. to make you forget
@@ -42,4 +44,15 @@ they put something in it
 to make you forget
 Jeremy: TRUE
 Tom: 1st epoch is finished and now I can peek into the model for fun. Apparently "Paul" is the 1206th ranked word in the AI's vocabulary
-Rhett: What's the 1205th ranked word?"""))
+Rhett: What's the 1205th ranked word?"""
+
+testmsg2 = """Jeremy: i am going to write a program to manually go through all of my messages and append the word badger at the end to fuck with the results badger
+Tom: I can just clean the data if you do that badger
+Jeremy: lol badger
+Tom: oh and yes, this does mean if you edit past messages it WILL fuck with the results, but as long as you don't do stuff like append badger to every message, edits wont really make a big impact. badger
+Tom: Oh yeah, I don't think I mentioned this before: The AI will literally believe it is me. The way I'm training it and the way I intend to implement it will result in it thinking that messages I send were actually sent by it. So basically it's gonna be fucking impossible for me to interact with it unless I hardcode something that makes it think I'm one of you guys.
+Tom: badger
+Rhett: counter point, just make it think that it has schizophrenia. badger"""
+
+# Replace the input text with whatever input you want to model to respond to.
+print(generate_message(testmsg2))
