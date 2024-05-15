@@ -11,6 +11,7 @@ All parties in the server from which the message history data have given consent
 * Also open the file named "names.json" and list all ID/name pairs you wish to replace in the training data. Occurances of these IDs in the dataset will be replaced by the corresponding string listed in this file. All @mentions, #channel mentions, @role mentions, etc not listed here will instead be completely deleted from the data.
 * Add your bot to your discord server and run scrape.py to have it collect data.
 * Run trainer.py and monitor its progress over a few weeks. loss should get closer to 0 each epoch if the training is going well. You can use chat.py to test checkpoints by giving them an input to respond to.
+* Run chat.py whenever you want the bot to be active!
 
 
 ## __Required package installations:__
