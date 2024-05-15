@@ -34,4 +34,4 @@ x Write func to save our training dataset as a file format that can be read by S
 May 1:
 x Hook up training data to LLM via Python script, train it for a few days and monitor progress.
 
-- This might take a few weeks to finish training if all goes well.
+x This might take a few weeks to finish training if all goes well.
