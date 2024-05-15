@@ -152,7 +152,7 @@ def cleanMsg(msgContent : str, sentBy : str, names : dict[str, str], config : di
     """
     
     # If this is training data, immediately delete all content if the message was sent by KCBot or starts with "/kc"
-    if isTrainingData and (re.match(r"/kc", msgContent) != None or sentBy == config["botID"]):
+    if isTrainingData and (re.match(r"/kc", msgContent) != None or str(sentBy) == str(config["botID"])):
         return ""
     # If this is not training data, delete "/kc" from the start of messages and change mentions of the botID to the userID they are attempting to mimic.
     # This WILL result in the bot believing it is that user. Messages sent by the real user are treated by the bot as if it sent those messages.
@@ -198,11 +198,11 @@ def formatMsg(msgContent : str, sentBy : str, names : dict[str, str], config : d
         `isTrainingData` = `False` : If False, messages sent by Kaycee use the name of userToImpersonateID.
          If True, messages sent by Kaycee use the name "Kaycee (Bot)"
     """
-    if sentBy == config["botID"]:
+    if str(sentBy) == str(config["botID"]):
         if isTrainingData:
             return f"Kaycee (Bot): {msgContent}"
         else:
-            name = names[config["userToImpersonateID"]]
+            name = names[str(config["userToImpersonateID"])]
             return f"{name}: {msgContent}"
     else:
         return f"{names[str(sentBy)]}: {msgContent}"
