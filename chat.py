@@ -44,9 +44,10 @@ class ChatClient(dc.Client):
                         msgHistory.append(formatMsg(messageContent, str(msg.author.id), self.names, self.config))
                 # combine the messages into a single input string
                 msgHistoryStr = "\n".join(reversed(msgHistory))
-                response = generate_message(msgHistoryStr)
-                print(msgHistoryStr)
-                await message.reply(response, mention_author=True)
+                responses = generate_message(msgHistoryStr) # Array of generated responses
+                print(msgHistoryStr + "\n")
+                testprint(responses)
+                await message.reply(responses[0], mention_author=True)
             self.is_generating = False
 
 # Code for running chat bot
@@ -61,7 +62,7 @@ def runChatBot():
 # ----------------------------------------------------------------------------------
 
 
-model = './tmp_trainer/checkpoint-190'         # replace this with the dir of the checkpoint/model you want to chat with
+model = 'model.bin'         # replace this with the dir of the checkpoint/model you want to chat with
 #model = transformers.AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
 tokenizer = transformers.AutoTokenizer.from_pretrained("facebook/opt-350m")
 
@@ -69,9 +70,9 @@ generator = transformers.pipeline(
         task = 'text-generation',
         model = model,
         tokenizer = tokenizer,
-        max_new_tokens = 200,   # Limit the amount of new tokens the AI can generate to just 100.
-        device = "cpu",          # change this to an int to use the GPU of that ordinal rank instead (0 if you have one GPU)
-        exponential_decay_length_penalty = (50, 1.1)
+        device = "cpu",         # change this to an int to use the GPU of that ordinal rank instead (0 if you have one GPU)
+        max_new_tokens = 200,   # Hard limit to the amount of new tokens the AI can generate.
+        exponential_decay_length_penalty = (20, 1.05),  # Increase penalty by given exponent for each new token generated after 20th token (to keep messages short)
 )
 
 def generate_message(inputText : str) -> str:
@@ -89,10 +90,15 @@ def generate_message(inputText : str) -> str:
         completedText = generator(
                 text_inputs = text,
                 return_full_text = False,       # Only return the added text
-                do_sample = True,
-                temperature = 0.8)
-        return completedText[0]['generated_text']
+                do_sample = True,               # Required for AI to keep track of context when generating text.
+                num_return_sequences = 10,      # Number of responses generated
+                temperature = 0.75,             # Value from 0-1. Lower temperature gives more random but less intelligible results, while higher is more predictable.
+                )
+        return [x['generated_text'] for x in completedText]
 
+def testprint(msgs : list[str]):
+    for msg in msgs:
+        print(msg + "\n\n")
 
 testmsg1 = """Tom: My computer is so fucking hot right now.
 Jeremy: cook an egg on it
@@ -113,8 +119,10 @@ Tom: Oh yeah, I don't think I mentioned this before: The AI will literally belie
 Tom: badger
 Rhett: counter point, just make it think that it has schizophrenia. badger"""
 
+
+
 # Use this line for testing. Replace the input text with whatever input you want to model to respond to.
 # print(generate_message(testmsg2))
 
 # Use this line if you want the bot to run in discord and respond to messages
-# runChatBot()
+runChatBot()
