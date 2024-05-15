@@ -15,9 +15,9 @@ All parties in the server from which the message history data have given consent
 
 
 ## __Required package installations:__
-* [discord.py][https://discordpy.readthedocs.io/en/stable/intro.html]
-* [trl][https://huggingface.co/docs/trl/main/en/installation]
+* [discord.py](https://discordpy.readthedocs.io/en/stable/intro.html)
+* [trl](https://huggingface.co/docs/trl/main/en/installation)
 
 
 ## __Credit:__
-Early on, I found [this post from Timo][https://gotimo2.github.io/posts/training-an-llm-on-150k-discord-messages/] about them working on a similar project. Although I didn't use any of their code, this post was invaluable and deserves a credit on this project.
+Early on, I found [this post from Timo](https://gotimo2.github.io/posts/training-an-llm-on-150k-discord-messages/) about them working on a similar project. Although I didn't use any of their code, this post was invaluable and deserves a credit on this project.
