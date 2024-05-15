@@ -47,7 +47,7 @@ class ChatClient(dc.Client):
                 responses = generate_message(msgHistoryStr) # Array of generated responses
                 print(msgHistoryStr + "\n")
                 testprint(responses)
-                await message.reply(responses[0], mention_author=True)
+                await message.reply(responses[0], mention_author=True) # reply with the first of the generated response
             self.is_generating = False
 
 # Code for running chat bot
