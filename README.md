@@ -1,5 +1,5 @@
 # __**KCBot**__
-Kaycee is an AI language model trained on my Discord message history, allowing it to respond to messages as I would. Included in this repo are all files written and used for this project, but the data I scraped and the AI data post-training have been excluded for privacy reasons. This repo can be used to create another Kaycee bot trained off of someone else's Discord message history, the instructions for which have been included in the setup below.
+Kaycee is an AI large language model trained on my Discord message history, allowing it to respond to messages as I would. Included in this repo are all files written and used for this project, but the data I scraped and the AI data post-training have been excluded for privacy reasons. This repo can be used to create another Kaycee bot trained off of someone else's Discord message history, the instructions for which have been included in the setup below.
 
 Early on when making this, I found [this post from Timo](https://gotimo2.github.io/posts/training-an-llm-on-150k-discord-messages/) about them working on a similar project, which inspired several of my own decisions when making this, most notably the format and prompt for the training data.
 
