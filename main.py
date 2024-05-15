@@ -1,4 +1,5 @@
 from lib import *
+from chat import *
 
 # temp test code for running chat bot
 def runChatBot():
@@ -23,4 +24,4 @@ def querySQL(query):
     for row in cur:
         print(cur.fetchone())
 
-runScrapeBot()
+runChatBot()
