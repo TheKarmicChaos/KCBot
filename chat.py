@@ -122,7 +122,7 @@ Rhett: counter point, just make it think that it has schizophrenia. badger"""
 
 
 # Use this line for testing. Replace the input text with whatever input you want to model to respond to.
-# print(generate_message(testmsg2))
+#testprint(generate_message(testmsg2))
 
 # Use this line if you want the bot to run in discord and respond to messages
 runChatBot()
