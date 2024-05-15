@@ -1,5 +1,4 @@
 from lib import *
-from trl import SFTTrainer
 import transformers
 
 class ChatClient(dc.Client):
