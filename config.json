@@ -3,7 +3,9 @@
     "botID": "xxxx",
     "userToImpersonateID": "xxxx",
     "guildID": "xxxx",
-    "channelIDs": [
+    "channelIDs":
+        [
         "xxxx",
-        "xxxx"]
+        "xxxx"
+        ]
 }
