@@ -91,7 +91,7 @@ def generate_message(inputText : str) -> str:
                 return_full_text = False,       # Only return the added text
                 do_sample = True,               # Required for AI to keep track of context when generating text.
                 num_return_sequences = 10,      # Number of responses generated
-                temperature = 0.75,             # Value from 0-1. Lower temperature gives more random but less intelligible results, while higher is more predictable.
+                temperature = 0.8,             # Value from 0-1. Lower temperature gives more random but less intelligible results, while higher is more predictable.
                 )
         return [x['generated_text'] for x in completedText]
 
