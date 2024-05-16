@@ -9,7 +9,6 @@ import transformers
 
 model = transformers.AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
 tokenizer = transformers.AutoTokenizer.from_pretrained("facebook/opt-350m")
-#tokenizer.add_special_tokens({'pad_token': '<pad>'})
 
 # Makes loss calculations ignore the "### Repsonse:" label
 response_template = """### Response:
@@ -54,7 +53,7 @@ print("-----")
 
 trainingArgs = transformers.TrainingArguments(
     output_dir= './tmp_trainer',
-    num_train_epochs = 10,          # Train for 10 epochs, after which we will consider our best checkpoint to be the final trained model. Increase/decrease this as needed.
+    num_train_epochs = 10,          # (On each dataset) Train for 10 epochs, then save the best checkpoint. Increase/decrease this as needed.
     load_best_model_at_end = True,  # Best checkpoint is always saved (counts toward total save limit defined below)
     save_total_limit = 10,          # Saves 10 most recent checkpoints before deleting oldest. Checkpoints are big files, but you can increase this number if you have enough space.
     save_strategy = "epoch",        # Save a checkpoint of the model at the end of each epoch.
@@ -64,7 +63,6 @@ trainingArgs = transformers.TrainingArguments(
 )
 
 # iterate through our cross-validation dataset splits
-
 for trainerNum, train_dataset, val_dataset in zip(range(10), train_ds, val_ds):
     print(f"Running Trainer {trainerNum+1}")
     trainer = trl.SFTTrainer(
@@ -80,22 +78,11 @@ for trainerNum, train_dataset, val_dataset in zip(range(10), train_ds, val_ds):
         data_collator = collator,
         callbacks=[transformers.EarlyStoppingCallback(early_stopping_patience=2)],  # Stop training with this dataset split if the eval_loss gets worse for n epochs.
     )
+    # You can turn this on if your GPU is CUDA-enabled. Only do this if you have a GPU with more memory than your CPU (or a lot of GPUs).
+    # Be sure to first reinstall pytorch with CUDA via the instructions at https://pytorch.org/get-started/locally/
+    # model.cuda()
     trainer.train()
     trainer.save_model("model.bin")
     print(f"Trainer {trainerNum+1}/10 complete.")
     # At this point, our best model for that dataset split has been saved to "model.bin", so load that as the starting model for our next trainer
     model = "model.bin"
-
-# You can turn this on if your GPU is CUDA-enabled. Only do this if you have a GPU with more memory than your CPU (or a lot of GPUs).
-# Be sure to first reinstall pytorch with CUDA via the instructions at https://pytorch.org/get-started/locally/
-# model.cuda()
-print("-----")
-
-#try:    # Try to resume training from an existing checkpoint
-#    print("Attempting to resume training from checkpoint.")
-#    trainer.train(resume_from_checkpoint=True)
-#except: # If no existing checkpoint exists, start training from scratch
-#    print("WARNING - No existing checkpoint found. Training new model from scratch.")
-#    trainer.train()
-
-#trainer.save_model("model.bin")
