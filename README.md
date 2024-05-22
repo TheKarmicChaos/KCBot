@@ -11,7 +11,7 @@ _All parties in the server from which the message history data have given consen
 * Download KCBot and put the directory anywhere you want.
 * Open ***KCBot/config.json*** and replace the "xxxxx" placeholders with the appropriate information (bot auth token, ID of your server, IDs of each channel that the bot can scrape/chat in, etc).
 * Open ***KCBot/names.json*** and list all ID/name pairs you wish to replace in the training data. Occurances of these IDs in the dataset will be replaced by the corresponding string listed in this file. All _@mentions_, _#channel_ mentions, _@role_ mentions, etc not listed will instead be completely deleted from the dataset.
-* Run ***scrape.py*** to have your bot the message history data.
+* Run ***scrape.py*** to have your bot scrape the message history data.
 * Run ***train.py*** to train the AI model and wait until it finishes, which may take a few days. "loss" and "eval_loss" should get closer to 0 each epoch if the training is going well.
 * Run ***chat.py*** whenever you want the bot to be active! It will respond to messages starting with "/kc".
 
